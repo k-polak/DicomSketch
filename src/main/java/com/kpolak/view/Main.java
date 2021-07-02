@@ -4,16 +4,22 @@ import com.kpolak.model.Dicom;
 import com.kpolak.reader.DicomReader;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.Arrays;
@@ -30,21 +36,23 @@ public class Main extends Application {
     public void start(Stage stage) {
         DicomReader dcm = new DicomReader();
         dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Downloads\\EnhancedCT\\EnhancedCT_Anon.dcm");
+// doesnt work        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\604.000000-COR 3X3-11320\\1-042.dcm");
+//        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia\\manifest-1557326747206\\LCTSC\\LCTSC-Test-S1-101\\03-03-2004-08186\\79262\\1-001.dcm");
+        //dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\605.000000-SAG 3X3-10651\\1-001.dcm");
+//        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\605.000000-SAG 3X3-10651\\1-002.dcm");
         mainDisplay = new MainDisplay(dicom);
 
-//        imageView = new ImageView();
-//        imageView.setX(10);
-//        imageView.setY(10);
-//        imageView.setFitWidth(575);
-//        imageView.setPreserveRatio(true);
-        //Setting the Scene object
         Pane root = (Pane) mainDisplay.getRoot();
-
-
+        root.setBackground((new Background(
+                new BackgroundFill(Color.rgb(0, 0, 50), CornerRadii.EMPTY, Insets.EMPTY))));
+        StackPane stack = new StackPane(root);
+        stack.setBackground((new Background(
+                new BackgroundFill(Color.rgb(50, 0, 50), CornerRadii.EMPTY, Insets.EMPTY))));
+        AnchorPane anchorPane = new AnchorPane();
 
         BorderPane borderPane = new BorderPane();
-        borderPane.setCenter(root);
-        BorderPane.setAlignment(root, Pos.CENTER);
+        borderPane.setCenter(stack);
+        BorderPane.setAlignment(stack, Pos.CENTER);
 
 
         HBox bottom = new HBox();
@@ -61,6 +69,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+        //-Xmx1G -Djava.library.path=C:\Users\P1\Downloads\dcm_opencv_krzychu
         launch(args);
     }
 

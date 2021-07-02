@@ -1,179 +1,97 @@
 package com.kpolak.view;
 
-import com.kpolak.model.Dicom;
-import com.kpolak.view.line.Curve;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Application;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeType;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
-import java.awt.image.BufferedImage;
-import java.util.LinkedList;
-import java.util.List;
-
-public class MainDisplay {
-    private List<Curve> curves = new LinkedList<>();
-    private Curve focusedCurve = null;
-    private Dicom dicom;
-    private ImageView imageView;
-    private int currentFrame;
-    StackPane imageHolder;
-    Pane pane;
-    Pane paneToReturn = new Pane();
+public class ZoomAndPaneExample extends Application {
 
     private ScrollPane scrollPane = new ScrollPane();
 
     private final DoubleProperty zoomProperty = new SimpleDoubleProperty(1.0d);
     private final DoubleProperty deltaY = new SimpleDoubleProperty(0.0d);
 
+    private final Group group = new Group();
 
-
-    public MainDisplay(Dicom dicom) {
-        this.dicom = dicom;
+    public static void main(String[] args) {
+        Application.launch(args);
     }
 
-    Node getRoot() {
-        paneToReturn = new Pane();
-        paneToReturn.setBackground(Background.EMPTY);
-        pane = new Pane();
-        pane.setBackground(Background.EMPTY);
-        imageView = new ImageView();
-        imageHolder = new StackPane(imageView);
-        imageHolder.setAlignment(Pos.CENTER);
-        imageHolder.setBackground((new Background(
-                new BackgroundFill(Color.rgb(50, 50, 50), CornerRadii.EMPTY, Insets.EMPTY))));
-
-
-        pane.getChildren().add(imageHolder);
+    @Override
+    public void start(Stage primaryStage) {
 
         scrollPane.setPannable(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setHbarPolicy(ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollBarPolicy.NEVER);
+        AnchorPane.setTopAnchor(scrollPane, 10.0d);
+        AnchorPane.setRightAnchor(scrollPane, 10.0d);
+        AnchorPane.setBottomAnchor(scrollPane, 10.0d);
+        AnchorPane.setLeftAnchor(scrollPane, 10.0d);
 
-        paneToReturn.getChildren().add(scrollPane);
+        AnchorPane root = new AnchorPane();
+
+        FileInputStream input = null;
+        try {
+            input = new FileInputStream("C:\\Users\\P1\\Desktop\\Plan.png");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        Image image = new Image(input);
+        ImageView imageView = new ImageView(image);
+        imageView.setOnMouseClicked(e -> System.out.println("Clicked x: " + e.getX() + "  y: "+e.getY()));
 
 
+//        Rectangle rect = new Rectangle(80, 60);
+//
+//        rect.setStroke(Color.NAVY);
+//        rect.setFill(Color.NAVY);
+//        rect.setStrokeType(StrokeType.INSIDE);
+
+        group.getChildren().add(imageView);
         // create canvas
         PanAndZoomPane panAndZoomPane = new PanAndZoomPane();
         zoomProperty.bind(panAndZoomPane.myScale);
         deltaY.bind(panAndZoomPane.deltaY);
-        panAndZoomPane.getChildren().add(pane);
+        panAndZoomPane.getChildren().add(group);
 
         SceneGestures sceneGestures = new SceneGestures(panAndZoomPane);
 
-//        imageHolder.minWidthProperty().bind(Bindings.createDoubleBinding(() ->
-//                pane.getViewportBounds().getWidth(), pane.viewportBoundsProperty()));
-//
-//        scrollPane.setFitToWidth(true);
-//        scrollPane.setFitToHeight(true);
-
         scrollPane.setContent(panAndZoomPane);
         panAndZoomPane.toBack();
-//        scrollPane.addEventFilter( MouseEvent.MOUSE_CLICKED, sceneGestures.getOnMouseClickedEventHandler());
+        scrollPane.addEventFilter( MouseEvent.MOUSE_CLICKED, sceneGestures.getOnMouseClickedEventHandler());
         scrollPane.addEventFilter( MouseEvent.MOUSE_PRESSED, sceneGestures.getOnMousePressedEventHandler());
         scrollPane.addEventFilter( MouseEvent.MOUSE_DRAGGED, sceneGestures.getOnMouseDraggedEventHandler());
         scrollPane.addEventFilter( ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
 
-
-
-        startPane();
-
-        return paneToReturn;
+        root.getChildren().add(scrollPane);
+        Scene scene = new Scene(root, 600, 400);
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
-
-    void nextFrame() {
-        if (currentFrame < dicom.getFrames().size()) {
-            currentFrame++;
-        }
-        showFrame();
-    }
-
-    void previousFrame() {
-        if (currentFrame > 1) {
-            currentFrame--;
-        }
-        showFrame();
-    }
-
-    private void showFrame() {
-        BufferedImage buffer = dicom.getFrames().get(currentFrame);
-        Image img = SwingFXUtils.toFXImage(buffer, null);
-        imageView.setImage(SwingFXUtils.toFXImage(buffer, null));
-        imageHolder.setMaxSize(buffer.getWidth(), buffer.getHeight());
-        imageHolder.setMinSize(buffer.getWidth(), buffer.getHeight());
-        pane.setMaxSize(buffer.getWidth(), buffer.getHeight());
-        pane.setMinSize(buffer.getWidth(), buffer.getHeight());
-        paneToReturn.setMaxSize(buffer.getWidth(), buffer.getHeight());
-        paneToReturn.setMinSize(buffer.getWidth(), buffer.getHeight());
-    }
-
-
-    public void startPane() {
-        Group group1 = new Group();
-        group1.setManaged(false);
-
-        pane.getChildren().add(group1);
-        pane.setOnMouseClicked(event -> {
-            double x = event.getX(), y = event.getY();
-            System.out.println("Clicked x: " + x + "  y: " + y);
-
-            if (event.getButton() == MouseButton.SECONDARY) {
-                if (curves.isEmpty()) {
-                    createNewCurve(x, y, group1);
-                } else {
-                    if (focusedCurve != null) {
-                        if (focusedCurve.isClosed) {
-                            curves.forEach(Curve::removeHighlight);
-                            createNewCurve(x, y, group1);
-                        } else {
-                            focusedCurve.handleClick(x, y);
-                        }
-                    } else {
-                        createNewCurve(x, y, group1);
-                    }
-                }
-            } else if (event.getButton() == MouseButton.PRIMARY) {
-                //
-            }
-        });
-    }
-
-    private void createNewCurve(double x, double y, Group group) {
-        Curve newCurve = new Curve(group, this, dicom.getWidth(), dicom.getHeight());
-        newCurve.handleClick(x, y);
-        focusedCurve = newCurve;
-        curves.add(newCurve);
-    }
-
-    public void handleCurveClicked(Curve curve) {
-        if (focusedCurve != null && !focusedCurve.equals(curve)) {
-            focusedCurve.removeHighlight();
-            curve.highlight();
-            focusedCurve = curve;
-        }
-    }
-
 
     class PanAndZoomPane extends Pane {
 
@@ -306,12 +224,11 @@ public class MainDisplay {
 
         private EventHandler<MouseEvent> onMouseDraggedEventHandler = new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
-                if (event.getButton().equals(MouseButton.MIDDLE)) {
-                    panAndZoomPane.setTranslateX(sceneDragContext.translateAnchorX + event.getX() - sceneDragContext.mouseAnchorX);
-                    panAndZoomPane.setTranslateY(sceneDragContext.translateAnchorY + event.getY() - sceneDragContext.mouseAnchorY);
 
-                    event.consume();
-                }
+                panAndZoomPane.setTranslateX(sceneDragContext.translateAnchorX + event.getX() - sceneDragContext.mouseAnchorX);
+                panAndZoomPane.setTranslateY(sceneDragContext.translateAnchorY + event.getY() - sceneDragContext.mouseAnchorY);
+
+                event.consume();
             }
         };
 

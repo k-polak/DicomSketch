@@ -6,6 +6,8 @@ import com.kpolak.model.Series;
 import com.kpolak.model.Study;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Tag;
+import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
+import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.dcm4che3.io.DicomInputStream;
 
 import javax.imageio.ImageIO;
@@ -21,7 +23,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class DicomReader {
-    private final ImageReader imageReader = ImageIO.getImageReadersByFormatName("DICOM").next();
+//    private final ImageReader imageReader = ImageIO.getImageReadersByFormatName("DICOM").next();
+    private final ImageReader imageReader = new DicomImageReader(new DicomImageReaderSpi());
 
     public BufferedImage readImageFromDicomInputStream(File file, int frame) throws IOException {
         try (DicomInputStream dis = new DicomInputStream(file)) {
@@ -46,7 +49,7 @@ public class DicomReader {
         Study study = readStudyData(attributes);
         Series series = readSeriesData(attributes);
 
-        int numberOfFrames = attributes.getInt(Tag.NumberOfFrames, 0);
+        int numberOfFrames = attributes.getInt(Tag.NumberOfFrames, 1);
         int width = attributes.getInt(Tag.Rows, 0);
         int height = attributes.getInt(Tag.Columns, 0);
         Map<Integer, BufferedImage> frames = readDicomFrames(path, numberOfFrames);
@@ -65,8 +68,8 @@ public class DicomReader {
         Map<Integer, BufferedImage> frames = new TreeMap<>();
         try (DicomInputStream dis = new DicomInputStream(new File(path))) {
             imageReader.setInput(dis);
-            for (int i = 1; i < numberOfFrames; i++) {
-                frames.put(i, imageReader.read(i - 1, readParam()));
+            for (int i = 0; i < numberOfFrames; i++) {
+                frames.put(i+1, imageReader.read(i, readParam()));
             }
         } catch (IOException e) {
             e.printStackTrace();

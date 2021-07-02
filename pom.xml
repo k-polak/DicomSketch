@@ -14,13 +14,13 @@
         <dcm4che.version>5.23.3</dcm4che.version>
     </properties>
 
-<!--    <repositories>-->
-<!--        <repository>-->
-<!--            <id>www.dcm4che.org</id>-->
-<!--            <name>dcm4che Repository</name>-->
-<!--            <url>http://www.dcm4che.org/maven2</url>-->
-<!--        </repository>-->
-<!--    </repositories>-->
+    <!--    <repositories>-->
+    <!--        <repository>-->
+    <!--            <id>www.dcm4che.org</id>-->
+    <!--            <name>dcm4che Repository</name>-->
+    <!--            <url>http://www.dcm4che.org/maven2</url>-->
+    <!--        </repository>-->
+    <!--    </repositories>-->
 
     <dependencies>
 
@@ -41,7 +41,6 @@
             <groupId>org.dcm4che</groupId>
             <artifactId>dcm4che-imageio-rle</artifactId>
             <version>${dcm4che.version}</version>
-            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -60,9 +59,57 @@
             <groupId>org.dcm4che</groupId>
             <artifactId>dcm4che-imageio-opencv</artifactId>
             <version>${dcm4che.version}</version>
-            <scope>runtime</scope>
         </dependency>
-
     </dependencies>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <mainClass>com.kpolak.view.Main</mainClass>
+                            </manifest>
+                        </archive>
+                        <descriptorRefs>
+                            <descriptorRef>jar-with-dependencies</descriptorRef>
+                        </descriptorRefs>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>single</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                            <configuration>
+                                <transformers>
+                                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                        <mainClass>com.kpolak.view.Main</mainClass>
+                                    </transformer>
+                                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                </transformers>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

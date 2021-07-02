@@ -2,7 +2,6 @@ package com.kpolak.view.line;
 
 import com.kpolak.view.MainDisplay;
 import javafx.scene.Group;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.QuadCurve;
@@ -70,7 +69,7 @@ public class Curve {
         curve.setOnMouseClicked(event -> {
             System.out.println("Line clicked");
             lineClicked();
-            event.consume();
+//            event.consume();
         });
         curve.setStartX(x1);
         curve.setStartY(y1);
@@ -92,11 +91,15 @@ public class Curve {
         Line controlLine1 = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.startXProperty(), curve.startYProperty(), this);
         Line controlLine2 = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.endXProperty(), curve.endYProperty(), this);
         Anchor control1 = new Anchor(Color.FORESTGREEN, curve.controlXProperty(), curve.controlYProperty(), 3, AnchorType.CONTROL_POINT, maxWidth, maxHeight);
+
         controlPoints.add(control1);
         controlLines.add(controlLine1);
         controlLines.add(controlLine2);
 //        Anchor control2 = new Anchor(Color.FORESTGREEN, curve.controlX2Property(), curve.controlY2Property(), 3);
         group.getChildren().addAll(curve, control1, controlLine2, controlLine1);
+        control1.toFront();
+        from.toFront();
+        to.toFront();
         return curve;
     }
 
@@ -133,6 +136,7 @@ public class Curve {
     private void handleAnchorMerge() {
         closeCurve();
         removeMergedAnchor();
+        points.forEach(Anchor::toFront);
     }
 
     private void closeCurve() {
