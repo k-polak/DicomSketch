@@ -3,13 +3,10 @@ package com.kpolak.view;
 import com.kpolak.model.Dicom;
 import com.kpolak.reader.DicomReader;
 import javafx.application.Application;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -35,11 +32,17 @@ public class Main extends Application {
 
     public void start(Stage stage) {
         DicomReader dcm = new DicomReader();
-        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Downloads\\EnhancedCT\\EnhancedCT_Anon.dcm");
-// doesnt work        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\604.000000-COR 3X3-11320\\1-042.dcm");
+//        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Downloads\\EnhancedCT\\EnhancedCT_Anon.dcm");
+//        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\604.000000-COR 3X3-11320\\1-042.dcm");
+
 //        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia\\manifest-1557326747206\\LCTSC\\LCTSC-Test-S1-101\\03-03-2004-08186\\79262\\1-001.dcm");
         //dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\605.000000-SAG 3X3-10651\\1-001.dcm");
 //        dicom = dcm.readDicomFromFile("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\605.000000-SAG 3X3-10651\\1-002.dcm");
+
+        dcm.readDicomFilesInDirectory("C:\\Users\\P1\\Desktop\\praca_inzynierska\\zdjecia3\\manifest-1608266677008\\MIDRC-RICORD-1A\\MIDRC-RICORD-1A-419639-000082\\08-02-2002-CT CHEST WITHOUT CONTRAST-04614\\604.000000-COR 3X3-11320");
+        dicom = dcm.getRootNode().flatTree().get(0);
+
+
         mainDisplay = new MainDisplay(dicom);
 
         Pane root = (Pane) mainDisplay.getRoot();

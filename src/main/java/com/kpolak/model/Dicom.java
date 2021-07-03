@@ -12,6 +12,7 @@ public class Dicom {
     Patient patient;
     Series series;
     Study study;
+    Integer instanceNumber;
     Map<Integer, BufferedImage> frames;
     int width;
     int height;

@@ -1,5 +1,6 @@
 package com.kpolak.reader;
 
+import com.kpolak.hierarchy.RootNode;
 import com.kpolak.model.Dicom;
 import com.kpolak.model.Patient;
 import com.kpolak.model.Series;
@@ -10,7 +11,6 @@ import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;
 import org.dcm4che3.imageio.plugins.dcm.DicomImageReaderSpi;
 import org.dcm4che3.io.DicomInputStream;
 
-import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import java.awt.image.BufferedImage;
@@ -23,8 +23,17 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class DicomReader {
-//    private final ImageReader imageReader = ImageIO.getImageReadersByFormatName("DICOM").next();
+    //    private final ImageReader imageReader = ImageIO.getImageReadersByFormatName("DICOM").next();
     private final ImageReader imageReader = new DicomImageReader(new DicomImageReaderSpi());
+    private RootNode rootNode;
+
+    public DicomReader() {
+        rootNode = new RootNode();
+    }
+
+    public RootNode getRootNode() {
+        return rootNode;
+    }
 
     public BufferedImage readImageFromDicomInputStream(File file, int frame) throws IOException {
         try (DicomInputStream dis = new DicomInputStream(file)) {
@@ -33,8 +42,22 @@ public class DicomReader {
         }
     }
 
-    public Dicom readDicomFromFile(String path) {
+    public void readDicomFilesInDirectory(String path) {
+        File dir = new File(path);
+        File[] files = dir.listFiles((dir1, name) -> name.endsWith(".dcm"));
 
+        for (File dicomFile : files) {
+            Dicom dicom = readDicomFromFile(dicomFile.getPath());
+            if (dicom.getInstanceNumber() == -1) {
+                System.out.println("File without instanceNumber found. File is skipped");
+            } else {
+                rootNode.add(dicom);
+            }
+        }
+        System.out.println("break");
+    }
+
+    public Dicom readDicomFromFile(String path) {
         Attributes attributes;
         try (DicomInputStream dis = new DicomInputStream(new File(path))) {
             dis.setIncludeBulkData(DicomInputStream.IncludeBulkData.NO);
@@ -48,34 +71,52 @@ public class DicomReader {
         Patient patient = readPatientData(attributes);
         Study study = readStudyData(attributes);
         Series series = readSeriesData(attributes);
-
+        Map<Integer, BufferedImage> frames;
         int numberOfFrames = attributes.getInt(Tag.NumberOfFrames, 1);
         int width = attributes.getInt(Tag.Rows, 0);
         int height = attributes.getInt(Tag.Columns, 0);
-        Map<Integer, BufferedImage> frames = readDicomFrames(path, numberOfFrames);
+        int instanceNumber = attributes.getInt(Tag.InstanceNumber, -1);
+        if (numberOfFrames == 1) {
+            frames = readSingleFrameDicom(path, instanceNumber);
+        } else {
+            frames = readMultiframeDicomFrames(path, numberOfFrames);
+        }
 
         return Dicom.builder()
                 .patient(patient)
                 .study(study)
                 .series(series)
                 .frames(frames)
+                .instanceNumber(instanceNumber)
                 .width(width)
                 .height(height)
                 .build();
     }
 
-    private  Map<Integer, BufferedImage> readDicomFrames(String path, int numberOfFrames){
+    private Map<Integer, BufferedImage> readMultiframeDicomFrames(String path, int numberOfFrames) {
         Map<Integer, BufferedImage> frames = new TreeMap<>();
         try (DicomInputStream dis = new DicomInputStream(new File(path))) {
             imageReader.setInput(dis);
             for (int i = 0; i < numberOfFrames; i++) {
-                frames.put(i+1, imageReader.read(i, readParam()));
+                frames.put(i + 1, imageReader.read(i, readParam()));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return frames;
     }
+
+    private Map<Integer, BufferedImage> readSingleFrameDicom(String path, int instanceNumber) {
+        Map<Integer, BufferedImage> frames = new TreeMap<>();
+        try (DicomInputStream dis = new DicomInputStream(new File(path))) {
+            imageReader.setInput(dis);
+            frames.put(instanceNumber, imageReader.read(0, readParam()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return frames;
+    }
+
 
     private Patient readPatientData(Attributes attributes) {
         return Patient.builder()
@@ -111,7 +152,7 @@ public class DicomReader {
         return imageReader.getDefaultReadParam();
     }
 
-    public void printTags(Attributes attributes){
+    public void printTags(Attributes attributes) {
         Arrays.stream(attributes.tags())
                 .forEach(tag -> System.out.println("Tag " + getFieldNameByValue(tag) + "   " + tag + " =  " + attributes.getString(tag)));
     }
