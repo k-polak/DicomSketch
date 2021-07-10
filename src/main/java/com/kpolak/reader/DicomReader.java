@@ -47,12 +47,12 @@ public class DicomReader {
         File[] files = dir.listFiles((dir1, name) -> name.endsWith(".dcm"));
 
         for (File dicomFile : files) {
-            Dicom dicom = readDicomFromFile(dicomFile.getPath());
-            if (dicom.getInstanceNumber() == -1) {
-                System.out.println("File without instanceNumber found. File is skipped");
-            } else {
-                rootNode.add(dicom);
-            }
+            readDicomFromFile(dicomFile.getPath());
+//            if (dicom.getInstanceNumber() == -1) {
+//                System.out.println("File without instanceNumber found. File is skipped");
+//            } else {
+//                rootNode.add(dicom);
+//            }
         }
         System.out.println("break");
     }
@@ -82,7 +82,7 @@ public class DicomReader {
             frames = readMultiframeDicomFrames(path, numberOfFrames);
         }
 
-        return Dicom.builder()
+        Dicom dicom = Dicom.builder()
                 .patient(patient)
                 .study(study)
                 .series(series)
@@ -91,6 +91,14 @@ public class DicomReader {
                 .width(width)
                 .height(height)
                 .build();
+
+        if (dicom.getInstanceNumber() == -1) {
+            System.out.println("File without instanceNumber found. File is skipped");
+        } else {
+            rootNode.add(dicom);
+        }
+
+        return rootNode.findDicom(patient, study, series);
     }
 
     private Map<Integer, BufferedImage> readMultiframeDicomFrames(String path, int numberOfFrames) {

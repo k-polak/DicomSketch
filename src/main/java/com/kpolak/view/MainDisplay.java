@@ -118,7 +118,6 @@ public class MainDisplay {
 
     private void showFrame() {
         BufferedImage buffer = dicom.getFrames().get(currentFrame);
-        Image img = SwingFXUtils.toFXImage(buffer, null);
         imageView.setImage(SwingFXUtils.toFXImage(buffer, null));
         imageHolder.setMaxSize(buffer.getWidth(), buffer.getHeight());
         imageHolder.setMinSize(buffer.getWidth(), buffer.getHeight());

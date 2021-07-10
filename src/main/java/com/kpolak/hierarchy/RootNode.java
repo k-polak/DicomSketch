@@ -1,6 +1,9 @@
 package com.kpolak.hierarchy;
 
 import com.kpolak.model.Dicom;
+import com.kpolak.model.Patient;
+import com.kpolak.model.Series;
+import com.kpolak.model.Study;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +33,27 @@ public class RootNode {
         }
     }
 
+    public boolean containsDicom(Dicom dicom) {
+        return flatTree().contains(dicom);
+    }
+
     public List<Dicom> flatTree() {
         return patients.stream()
                 .flatMap(patientNode -> patientNode.getStudies().stream())
                 .flatMap(studyNode -> studyNode.getSeriesList().stream())
                 .map(seriesNode -> seriesNode.images)
                 .collect(Collectors.toList());
+    }
+
+    public Dicom findDicom(Patient patient, Study study, Series series) {
+        return patients.stream()
+                .filter(patientNode -> patientNode.getPatient().equals(patient))
+                .flatMap(patientNode -> patientNode.getStudies().stream())
+                .filter(studyNode -> studyNode.getStudy().equals(study))
+                .flatMap(studyNode -> studyNode.getSeriesList().stream())
+                .filter(seriesNode -> seriesNode.getSeries().equals(series))
+                .map(SeriesNode::getImages)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Couldn't get dicom by series"));
     }
 }

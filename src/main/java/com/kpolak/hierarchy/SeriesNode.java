@@ -17,6 +17,10 @@ public class SeriesNode {
         return series;
     }
 
+    public Dicom getImages() {
+        return images;
+    }
+
     public void add(Dicom dicom) {
         if (images == null) {
             images = dicom;
