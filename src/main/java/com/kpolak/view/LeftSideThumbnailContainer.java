@@ -10,11 +10,11 @@ public class LeftSideThumbnailContainer extends VBox {
     private final DicomReader dicomReader;
     private VBox thumbnailContainer;
     private ScrollPane scrollPane;
-    private Main main;
+    private ViewManager viewManager;
 
-    public LeftSideThumbnailContainer(DicomReader dicomReader, Main main) {
+    public LeftSideThumbnailContainer(DicomReader dicomReader, ViewManager viewManager) {
         this.dicomReader = dicomReader;
-        this.main = main;
+        this.viewManager = viewManager;
     }
 
     public void buildThumbnailContainer() {
@@ -33,7 +33,7 @@ public class LeftSideThumbnailContainer extends VBox {
     private ImageView createThumbnail(Dicom dicom) {
         DicomThumbnail dicomThumbnail = new DicomThumbnail(dicom);
         Dicom clickedDicom = dicomReader.getRootNode().findDicom(dicom.getPatient(), dicom.getStudy(), dicom.getSeries());
-        dicomThumbnail.setOnMouseClicked(e -> main.displayDicom(clickedDicom));
+        dicomThumbnail.setOnMouseClicked(e -> viewManager.displayDicom(clickedDicom));
         return dicomThumbnail;
     }
 }

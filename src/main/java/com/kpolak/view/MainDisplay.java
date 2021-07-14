@@ -82,20 +82,12 @@ public class MainDisplay {
 
         SceneGestures sceneGestures = new SceneGestures(panAndZoomPane);
 
-//        imageHolder.minWidthProperty().bind(Bindings.createDoubleBinding(() ->
-//                pane.getViewportBounds().getWidth(), pane.viewportBoundsProperty()));
-//
-//        scrollPane.setFitToWidth(true);
-//        scrollPane.setFitToHeight(true);
-
         scrollPane.setContent(panAndZoomPane);
         panAndZoomPane.toBack();
 //        scrollPane.addEventFilter( MouseEvent.MOUSE_CLICKED, sceneGestures.getOnMouseClickedEventHandler());
         scrollPane.addEventFilter( MouseEvent.MOUSE_PRESSED, sceneGestures.getOnMousePressedEventHandler());
         scrollPane.addEventFilter( MouseEvent.MOUSE_DRAGGED, sceneGestures.getOnMouseDraggedEventHandler());
         scrollPane.addEventFilter( ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
-
-
 
         startPane();
 
