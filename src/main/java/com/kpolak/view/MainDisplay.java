@@ -12,9 +12,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -32,7 +30,7 @@ import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MainDisplay {
+public class MainDisplay extends Pane {
     private List<Curve> curves = new LinkedList<>();
     private Curve focusedCurve = null;
     private Dicom dicom;
@@ -40,7 +38,6 @@ public class MainDisplay {
     private int currentFrame;
     StackPane imageHolder;
     Pane pane;
-    Pane paneToReturn = new Pane();
 
     private ScrollPane scrollPane = new ScrollPane();
 
@@ -48,14 +45,9 @@ public class MainDisplay {
     private final DoubleProperty deltaY = new SimpleDoubleProperty(0.0d);
 
 
-
     public MainDisplay(Dicom dicom) {
         this.dicom = dicom;
-    }
-
-    Node getRoot() {
-        paneToReturn = new Pane();
-        paneToReturn.setBackground(Background.EMPTY);
+        setBackground(Background.EMPTY);
         pane = new Pane();
         pane.setBackground(Background.EMPTY);
         imageView = new ImageView();
@@ -64,15 +56,13 @@ public class MainDisplay {
         imageHolder.setBackground((new Background(
                 new BackgroundFill(Color.rgb(50, 50, 50), CornerRadii.EMPTY, Insets.EMPTY))));
 
-
         pane.getChildren().add(imageHolder);
 
         scrollPane.setPannable(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        paneToReturn.getChildren().add(scrollPane);
-
+        getChildren().add(scrollPane);
 
         // create canvas
         PanAndZoomPane panAndZoomPane = new PanAndZoomPane();
@@ -90,8 +80,10 @@ public class MainDisplay {
         scrollPane.addEventFilter( ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
 
         startPane();
+    }
 
-        return paneToReturn;
+    public Dicom getDicom() {
+        return dicom;
     }
 
     void nextFrame() {
@@ -115,8 +107,9 @@ public class MainDisplay {
         imageHolder.setMinSize(buffer.getWidth(), buffer.getHeight());
         pane.setMaxSize(buffer.getWidth(), buffer.getHeight());
         pane.setMinSize(buffer.getWidth(), buffer.getHeight());
-        paneToReturn.setMaxSize(buffer.getWidth(), buffer.getHeight());
-        paneToReturn.setMinSize(buffer.getWidth(), buffer.getHeight());
+
+        setMaxSize(buffer.getWidth(), buffer.getHeight());
+        setMinSize(buffer.getWidth(), buffer.getHeight());
     }
 
 
@@ -164,7 +157,6 @@ public class MainDisplay {
             focusedCurve = curve;
         }
     }
-
 
     class PanAndZoomPane extends Pane {
 

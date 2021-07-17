@@ -14,7 +14,6 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -24,16 +23,19 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class ViewManager {
-    MainDisplay mainDisplay;
+    MainDisplay currentMainDisplay;
     Scene scene;
     Stage stage;
     DicomReader dicomReader;
     BorderPane borderPane;
     LeftSideThumbnailContainer leftSideThumbnailContainer;
+    List<MainDisplay> mainDisplays;
 
     public ViewManager(Stage stage) {
         this.stage = stage;
@@ -50,6 +52,7 @@ public class ViewManager {
         borderPane = new BorderPane();
         scene = new Scene(borderPane, 1200, 1000);
         leftSideThumbnailContainer = new LeftSideThumbnailContainer(dicomReader, this);
+        mainDisplays = new ArrayList<>();
 
         borderPane.setBottom(getBottomButtons());
         borderPane.setLeft(leftSideThumbnailContainer);
@@ -64,40 +67,64 @@ public class ViewManager {
         return bottom;
     }
 
-    public void displayDicom(Dicom dicom) {
-        mainDisplay = new MainDisplay(dicom);
+    public MainDisplay createMainDisplayIfNecessary(Dicom newDicom) {
+        return getMainDisplayByDicom(newDicom).orElseGet(() -> createMainDisplay(newDicom));
+    }
 
-        Pane root = (Pane) mainDisplay.getRoot();
-        root.setBackground((new Background(
+    public MainDisplay createMainDisplay(Dicom newDicom) {
+        MainDisplay mainDisplay = new MainDisplay(newDicom);
+        mainDisplays.add(mainDisplay);
+        return mainDisplay;
+    }
+
+    private Optional<MainDisplay> getMainDisplayByDicom(Dicom dicom) {
+        return mainDisplays.stream()
+                .filter(display -> display.getDicom().getPatient().equals(dicom.getPatient()) &&
+                        display.getDicom().getSeries().equals(dicom.getSeries()) &&
+                        display.getDicom().getStudy().equals(dicom.getStudy()))
+                .findFirst();
+    }
+
+    public void thumbnailSelected(DicomThumbnail thumbnail) {
+        MainDisplay mainDisplay = mainDisplays.stream()
+                .filter(display -> display.getDicom().getPatient().equals(thumbnail.getPatient()) &&
+                        display.getDicom().getSeries().equals(thumbnail.getSeries()) &&
+                        display.getDicom().getStudy().equals(thumbnail.getStudy()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Couldn't find main window associated with clicked thumbnail"));
+        setCurrentMainDisplay(mainDisplay);
+    }
+
+    private void setCurrentMainDisplay(MainDisplay display) {
+        currentMainDisplay = display;
+        display.setBackground((new Background(
                 new BackgroundFill(Color.rgb(0, 0, 50), CornerRadii.EMPTY, Insets.EMPTY))));
-        StackPane stack = new StackPane(root);
+        StackPane stack = new StackPane(display);
         stack.setBackground((new Background(
                 new BackgroundFill(Color.rgb(50, 0, 50), CornerRadii.EMPTY, Insets.EMPTY))));
         borderPane.setCenter(stack);
         BorderPane.setAlignment(stack, Pos.CENTER);
     }
 
-
     private List<Button> getButtons() {
         Button nextFrameButton = new Button("Next");
-        nextFrameButton.setOnMouseClicked(e -> mainDisplay.nextFrame());
+        nextFrameButton.setOnMouseClicked(e -> currentMainDisplay.nextFrame());
 
         Button previousFrameButton = new Button("Previous");
-        previousFrameButton.setOnMouseClicked(e -> mainDisplay.previousFrame());
+        previousFrameButton.setOnMouseClicked(e -> currentMainDisplay.previousFrame());
         return Arrays.asList(previousFrameButton, nextFrameButton);
     }
 
-
     private VBox createMenu() {
         MenuBar menuBar = new MenuBar();
-        VBox vBox = new VBox(menuBar);
+        VBox menuBarContainer = new VBox(menuBar);
         Menu menu = new Menu("File");
 
         menu.getItems().add(getOpenDicomMenuItem());
         menu.getItems().add(getOpenDicomDirMenuItem());
 
         menuBar.getMenus().add(menu);
-        return vBox;
+        return menuBarContainer;
     }
 
     private MenuItem getOpenDicomMenuItem() {
@@ -128,7 +155,8 @@ public class ViewManager {
         if (dicomFile != null) {
             Dicom selectedDicom = dicomReader.readDicomFromFile(dicomFile.getAbsolutePath());
             leftSideThumbnailContainer.buildThumbnailContainer();
-            displayDicom(selectedDicom);
+            MainDisplay mainDisplay = createMainDisplayIfNecessary(selectedDicom);
+            setCurrentMainDisplay(mainDisplay);
         }
     }
 
@@ -137,10 +165,23 @@ public class ViewManager {
             boolean isFirstLoad = dicomReader.getRootNode().flatTree().isEmpty();
             dicomReader.readDicomFilesInDirectory(dir.getAbsolutePath());
             leftSideThumbnailContainer.buildThumbnailContainer();
+            createMainWindowsForNewDicoms();
+
             if (isFirstLoad) {
-                displayDicom(dicomReader.getRootNode().flatTree().get(0));
+                Optional<MainDisplay> mainDisplay = getMainDisplayByDicom(dicomReader.getRootNode().flatTree().get(0));
+                if (mainDisplay.isPresent()) {
+                    setCurrentMainDisplay(mainDisplay.get());
+                } else {
+                    throw new RuntimeException("Couldnt find main display after first load");
+                }
             }
         }
+    }
+
+    private void createMainWindowsForNewDicoms() {
+        dicomReader.getRootNode().flatTree().stream()
+                .filter(dicom -> !getMainDisplayByDicom(dicom).isPresent())
+                .forEach(this::createMainDisplay);
     }
 
     private StackPane getEmptyMainWindow() {

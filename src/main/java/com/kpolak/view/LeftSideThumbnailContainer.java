@@ -8,9 +8,7 @@ import javafx.scene.layout.VBox;
 
 public class LeftSideThumbnailContainer extends VBox {
     private final DicomReader dicomReader;
-    private VBox thumbnailContainer;
-    private ScrollPane scrollPane;
-    private ViewManager viewManager;
+    private final ViewManager viewManager;
 
     public LeftSideThumbnailContainer(DicomReader dicomReader, ViewManager viewManager) {
         this.dicomReader = dicomReader;
@@ -18,8 +16,9 @@ public class LeftSideThumbnailContainer extends VBox {
     }
 
     public void buildThumbnailContainer() {
-        thumbnailContainer = new VBox();
-        scrollPane = new ScrollPane();
+        VBox thumbnailContainer = new VBox();
+        ScrollPane scrollPane = new ScrollPane();
+
         dicomReader.getRootNode().flatTree().stream()
                 .map(this::createThumbnail)
                 .forEach(imageView -> thumbnailContainer.getChildren().add(imageView));
@@ -32,8 +31,7 @@ public class LeftSideThumbnailContainer extends VBox {
 
     private ImageView createThumbnail(Dicom dicom) {
         DicomThumbnail dicomThumbnail = new DicomThumbnail(dicom);
-        Dicom clickedDicom = dicomReader.getRootNode().findDicom(dicom.getPatient(), dicom.getStudy(), dicom.getSeries());
-        dicomThumbnail.setOnMouseClicked(e -> viewManager.displayDicom(clickedDicom));
+        dicomThumbnail.setOnMouseClicked(e -> viewManager.thumbnailSelected(dicomThumbnail));
         return dicomThumbnail;
     }
 }

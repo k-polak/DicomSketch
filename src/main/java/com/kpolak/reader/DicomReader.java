@@ -23,9 +23,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class DicomReader {
-    //    private final ImageReader imageReader = ImageIO.getImageReadersByFormatName("DICOM").next();
     private final ImageReader imageReader = new DicomImageReader(new DicomImageReaderSpi());
-    private RootNode rootNode;
+    private final RootNode rootNode;
 
     public DicomReader() {
         rootNode = new RootNode();
@@ -35,24 +34,12 @@ public class DicomReader {
         return rootNode;
     }
 
-    public BufferedImage readImageFromDicomInputStream(File file, int frame) throws IOException {
-        try (DicomInputStream dis = new DicomInputStream(file)) {
-            imageReader.setInput(dis);
-            return imageReader.read(frame - 1, readParam());
-        }
-    }
-
     public void readDicomFilesInDirectory(String path) {
         File dir = new File(path);
         File[] files = dir.listFiles((dir1, name) -> name.endsWith(".dcm"));
 
         for (File dicomFile : files) {
             readDicomFromFile(dicomFile.getPath());
-//            if (dicom.getInstanceNumber() == -1) {
-//                System.out.println("File without instanceNumber found. File is skipped");
-//            } else {
-//                rootNode.add(dicom);
-//            }
         }
         System.out.println("break");
     }
@@ -106,6 +93,7 @@ public class DicomReader {
         try (DicomInputStream dis = new DicomInputStream(new File(path))) {
             imageReader.setInput(dis);
             for (int i = 0; i < numberOfFrames; i++) {
+                System.out.println("parsing frame " + i);
                 frames.put(i + 1, imageReader.read(i, readParam()));
             }
         } catch (IOException e) {
