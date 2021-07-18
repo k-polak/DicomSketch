@@ -5,6 +5,7 @@ import com.kpolak.view.line.Curve;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -30,50 +31,99 @@ public class MainDisplay extends Pane {
     private Dicom dicom;
     private ImageView imageView;
     private int currentFrame;
-    StackPane imageHolder;
-    Pane pane;
-
-    private ScrollPane scrollPane = new ScrollPane();
-
-    private final DoubleProperty zoomProperty = new SimpleDoubleProperty(1.0d);
-    private final DoubleProperty deltaY = new SimpleDoubleProperty(0.0d);
-
 
     public MainDisplay(Dicom dicom) {
         this.dicom = dicom;
+        setMaxSize(dicom.getWidth(), dicom.getHeight());
+        setMinSize(dicom.getWidth(), dicom.getHeight());
         setBackground(Background.EMPTY);
-        pane = new Pane();
-        pane.setBackground(Background.EMPTY);
-        imageView = new ImageView();
-        imageHolder = new StackPane(imageView);
-        imageHolder.setAlignment(Pos.CENTER);
-        imageHolder.setBackground((new Background(
-                new BackgroundFill(Color.rgb(50, 50, 50), CornerRadii.EMPTY, Insets.EMPTY))));
+        Pane imagePane = createImagePane();
 
-        pane.getChildren().add(imageHolder);
+        PanAndZoomPane panAndZoomPane = createPaneAndZoomPane();
+        panAndZoomPane.getChildren().add(imagePane);
+        ScrollPane scrollPane = createScrollPane(panAndZoomPane);
+        getChildren().add(scrollPane);
 
+    }
+
+    private ScrollPane createScrollPane(PanAndZoomPane panAndZoomPane) {
+        ScrollPane scrollPane = new ScrollPane();
+        SceneGestures sceneGestures = new SceneGestures(panAndZoomPane);
         scrollPane.setPannable(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        getChildren().add(scrollPane);
-
-        // create canvas
-        PanAndZoomPane panAndZoomPane = new PanAndZoomPane();
-        zoomProperty.bind(panAndZoomPane.myScale);
-        deltaY.bind(panAndZoomPane.deltaY);
-        panAndZoomPane.getChildren().add(pane);
-
-        SceneGestures sceneGestures = new SceneGestures(panAndZoomPane);
-
+//        scrollPane.addEventFilter( MouseEvent.MOUSE_CLICKED, sceneGestures.getOnMouseClickedEventHandler());
+        scrollPane.addEventFilter(MouseEvent.MOUSE_PRESSED, sceneGestures.getOnMousePressedEventHandler());
+        scrollPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, sceneGestures.getOnMouseDraggedEventHandler());
+        scrollPane.addEventFilter(ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
         scrollPane.setContent(panAndZoomPane);
         panAndZoomPane.toBack();
-//        scrollPane.addEventFilter( MouseEvent.MOUSE_CLICKED, sceneGestures.getOnMouseClickedEventHandler());
-        scrollPane.addEventFilter( MouseEvent.MOUSE_PRESSED, sceneGestures.getOnMousePressedEventHandler());
-        scrollPane.addEventFilter( MouseEvent.MOUSE_DRAGGED, sceneGestures.getOnMouseDraggedEventHandler());
-        scrollPane.addEventFilter( ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
+        return scrollPane;
+    }
 
-        startPane();
+    private PanAndZoomPane createPaneAndZoomPane() {
+        PanAndZoomPane panAndZoomPane = new PanAndZoomPane();
+        DoubleProperty zoomProperty = new SimpleDoubleProperty(1.0d);
+        DoubleProperty deltaY = new SimpleDoubleProperty(0.0d);
+        zoomProperty.bind(panAndZoomPane.myScale);
+        deltaY.bind(panAndZoomPane.deltaY);
+        return panAndZoomPane;
+    }
+
+    private Pane createImagePane() {
+        Pane imagePane = new Pane();
+        imagePane.setMaxSize(dicom.getWidth(), dicom.getHeight());
+        imagePane.setMinSize(dicom.getWidth(), dicom.getHeight());
+        imagePane.setBackground(Background.EMPTY);
+        StackPane imageHolder = createImageHolder();
+
+        imagePane.getChildren().add(imageHolder);
+
+        Group group1 = new Group();
+        group1.setManaged(false);
+
+        imagePane.getChildren().add(group1);
+        imagePane.setOnMouseClicked(getMouseEventHandlerForImagePane(group1));
+
+        return imagePane;
+    }
+
+    private EventHandler<MouseEvent> getMouseEventHandlerForImagePane(Group group) {
+        return event -> {
+            double x = event.getX(), y = event.getY();
+            System.out.println("Clicked x: " + x + "  y: " + y);
+
+            if (event.getButton() == MouseButton.SECONDARY) {
+                if (curves.isEmpty()) {
+                    createNewCurve(x, y, group);
+                } else {
+                    if (focusedCurve != null) {
+                        if (focusedCurve.isClosed) {
+                            curves.forEach(Curve::removeHighlight);
+                            createNewCurve(x, y, group);
+                        } else {
+                            focusedCurve.handleClick(x, y);
+                        }
+                    } else {
+                        createNewCurve(x, y, group);
+                    }
+                }
+            } else if (event.getButton() == MouseButton.PRIMARY) {
+                //
+            }
+        };
+    }
+
+    private StackPane createImageHolder() {
+        imageView = new ImageView();
+        StackPane imageHolder = new StackPane(imageView);
+        imageHolder.setAlignment(Pos.CENTER);
+        imageHolder.setBackground((new Background(
+                new BackgroundFill(Color.rgb(50, 50, 50), CornerRadii.EMPTY, Insets.EMPTY))));
+        imageHolder.setMaxSize(dicom.getWidth(), dicom.getHeight());
+        imageHolder.setMinSize(dicom.getWidth(), dicom.getHeight());
+        return imageHolder;
     }
 
     public Dicom getDicom() {
@@ -97,45 +147,16 @@ public class MainDisplay extends Pane {
     private void showFrame() {
         BufferedImage buffer = dicom.getFrames().get(currentFrame);
         imageView.setImage(SwingFXUtils.toFXImage(buffer, null));
-        imageHolder.setMaxSize(buffer.getWidth(), buffer.getHeight());
-        imageHolder.setMinSize(buffer.getWidth(), buffer.getHeight());
-        pane.setMaxSize(buffer.getWidth(), buffer.getHeight());
-        pane.setMinSize(buffer.getWidth(), buffer.getHeight());
+//        =============REMEMBER==========
+//        imageHolder.setMaxSize(buffer.getWidth(), buffer.getHeight());
+//        imageHolder.setMinSize(buffer.getWidth(), buffer.getHeight());
+//        imagePane.setMaxSize(buffer.getWidth(), buffer.getHeight());
+//        imagePane.setMinSize(buffer.getWidth(), buffer.getHeight());
 
-        setMaxSize(buffer.getWidth(), buffer.getHeight());
-        setMinSize(buffer.getWidth(), buffer.getHeight());
+//        setMaxSize(buffer.getWidth(), buffer.getHeight());
+//        setMinSize(buffer.getWidth(), buffer.getHeight());
     }
 
-
-    public void startPane() {
-        Group group1 = new Group();
-        group1.setManaged(false);
-
-        pane.getChildren().add(group1);
-        pane.setOnMouseClicked(event -> {
-            double x = event.getX(), y = event.getY();
-            System.out.println("Clicked x: " + x + "  y: " + y);
-
-            if (event.getButton() == MouseButton.SECONDARY) {
-                if (curves.isEmpty()) {
-                    createNewCurve(x, y, group1);
-                } else {
-                    if (focusedCurve != null) {
-                        if (focusedCurve.isClosed) {
-                            curves.forEach(Curve::removeHighlight);
-                            createNewCurve(x, y, group1);
-                        } else {
-                            focusedCurve.handleClick(x, y);
-                        }
-                    } else {
-                        createNewCurve(x, y, group1);
-                    }
-                }
-            } else if (event.getButton() == MouseButton.PRIMARY) {
-                //
-            }
-        });
-    }
 
     private void createNewCurve(double x, double y, Group group) {
         Curve newCurve = new Curve(group, this, dicom.getWidth(), dicom.getHeight());
