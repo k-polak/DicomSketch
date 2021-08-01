@@ -28,22 +28,31 @@ import java.util.List;
 public class MainDisplay extends Pane {
     private List<Curve> curves = new LinkedList<>();
     private Curve focusedCurve = null;
+    private FrameTraverser frameTraverser;
     private Dicom dicom;
     private ImageView imageView;
+    private Pane imagePane;
     private int currentFrame;
 
     public MainDisplay(Dicom dicom) {
         this.dicom = dicom;
+        frameTraverser = new FrameTraverser(this, dicom);
+        init();
+        System.out.println();
+    }
+
+    private void init() {
         setMaxSize(dicom.getWidth(), dicom.getHeight());
         setMinSize(dicom.getWidth(), dicom.getHeight());
         setBackground(Background.EMPTY);
-        Pane imagePane = createImagePane();
 
+        createImagePane();
         PanAndZoomPane panAndZoomPane = createPaneAndZoomPane();
         panAndZoomPane.getChildren().add(imagePane);
         ScrollPane scrollPane = createScrollPane(panAndZoomPane);
-        getChildren().add(scrollPane);
 
+        getChildren().add(scrollPane);
+        nextFrame();
     }
 
     private ScrollPane createScrollPane(PanAndZoomPane panAndZoomPane) {
@@ -72,7 +81,7 @@ public class MainDisplay extends Pane {
     }
 
     private Pane createImagePane() {
-        Pane imagePane = new Pane();
+        imagePane = new Pane();
         imagePane.setMaxSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setMinSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setBackground(Background.EMPTY);
@@ -84,35 +93,36 @@ public class MainDisplay extends Pane {
         group1.setManaged(false);
 
         imagePane.getChildren().add(group1);
-        imagePane.setOnMouseClicked(getMouseEventHandlerForImagePane(group1));
+        imagePane.setOnMouseClicked(this::getMouseEventHandlerForImagePane);
 
         return imagePane;
     }
 
-    private EventHandler<MouseEvent> getMouseEventHandlerForImagePane(Group group) {
-        return event -> {
-            double x = event.getX(), y = event.getY();
-            System.out.println("Clicked x: " + x + "  y: " + y);
-
-            if (event.getButton() == MouseButton.SECONDARY) {
-                if (curves.isEmpty()) {
-                    createNewCurve(x, y, group);
-                } else {
-                    if (focusedCurve != null) {
-                        if (focusedCurve.isClosed) {
-                            curves.forEach(Curve::removeHighlight);
-                            createNewCurve(x, y, group);
-                        } else {
-                            focusedCurve.handleClick(x, y);
-                        }
-                    } else {
-                        createNewCurve(x, y, group);
-                    }
-                }
-            } else if (event.getButton() == MouseButton.PRIMARY) {
-                //
-            }
-        };
+    private void getMouseEventHandlerForImagePane(MouseEvent event) {
+        frameTraverser.current().handleMouseEvent(event);
+//        return event -> {
+//            double x = event.getX(), y = event.getY();
+//            System.out.println("Clicked x: " + x + "  y: " + y);
+//
+//            if (event.getButton() == MouseButton.SECONDARY) {
+//                if (curves.isEmpty()) {
+//                    createNewCurve(x, y, group);
+//                } else {
+//                    if (focusedCurve != null) {
+//                        if (focusedCurve.isClosed) {
+//                            curves.forEach(Curve::removeHighlight);
+//                            createNewCurve(x, y, group);
+//                        } else {
+//                            focusedCurve.handleClick(x, y);
+//                        }
+//                    } else {
+//                        createNewCurve(x, y, group);
+//                    }
+//                }
+//            } else if (event.getButton() == MouseButton.PRIMARY) {
+//                //
+//            }
+//        };
     }
 
     private StackPane createImageHolder() {
@@ -131,17 +141,21 @@ public class MainDisplay extends Pane {
     }
 
     void nextFrame() {
-        if (currentFrame < dicom.getFrames().size()) {
-            currentFrame++;
-        }
-        showFrame();
+        DisplayUnit displayUnit = frameTraverser.next();
+        showDisplayUnit(displayUnit);
+//        if (currentFrame < dicom.getFrames().size()) {
+//            currentFrame++;
+//        }
+//        showFrame();
     }
 
     void previousFrame() {
-        if (currentFrame > 1) {
-            currentFrame--;
-        }
-        showFrame();
+        DisplayUnit displayUnit = frameTraverser.previous();
+        showDisplayUnit(displayUnit);
+//        if (currentFrame > 1) {
+//            currentFrame--;
+//        }
+//        showFrame();
     }
 
     private void showFrame() {
@@ -157,6 +171,19 @@ public class MainDisplay extends Pane {
 //        setMinSize(buffer.getWidth(), buffer.getHeight());
     }
 
+    void showDisplayUnit(DisplayUnit displayUnit) {
+        showFrame(displayUnit.frame);
+        showOverlay(displayUnit.overlay);
+    }
+
+    void showFrame(BufferedImage frame) {
+        imageView.setImage(SwingFXUtils.toFXImage(frame, null));
+    }
+
+    void showOverlay(Group group) {
+        imagePane.getChildren().removeIf(child -> child instanceof Group);
+        imagePane.getChildren().add(group);
+    }
 
     private void createNewCurve(double x, double y, Group group) {
         Curve newCurve = new Curve(group, this, dicom.getWidth(), dicom.getHeight());
@@ -166,6 +193,7 @@ public class MainDisplay extends Pane {
     }
 
     public void handleCurveClicked(Curve curve) {
+        frameTraverser.current().handleCurveClicked(curve);
         if (focusedCurve != null && !focusedCurve.equals(curve)) {
             focusedCurve.removeHighlight();
             curve.highlight();

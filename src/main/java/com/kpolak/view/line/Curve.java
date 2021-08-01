@@ -1,5 +1,8 @@
 package com.kpolak.view.line;
 
+import com.kpolak.api.CurveDTO;
+import com.kpolak.api.CurveSectionDTO;
+import com.kpolak.api.PointDTO;
 import com.kpolak.view.MainDisplay;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
@@ -9,9 +12,13 @@ import javafx.scene.shape.StrokeLineCap;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class Curve {
     private static final int POINT_MERGE_THRESHOLD = 10;
+    private Optional<UUID> id = Optional.of(UUID.randomUUID());
     public boolean isClosed;
     List<Anchor> points;
     List<Anchor> controlPoints;
@@ -34,6 +41,10 @@ public class Curve {
         this.maxHeight = maxHeight;
     }
 
+    public Optional<UUID> getId() {
+        return id;
+    }
+
     public void handleMoveTo(double x, double y, Anchor anchor) {
         if (isPointMergeValid(anchor)) {
             handleAnchorMerge();
@@ -45,7 +56,7 @@ public class Curve {
             return;
         }
 
-        Anchor clickedPoint = new Anchor(Color.TOMATO, x, y, 5, this, AnchorType.CURVE_POINT,  maxWidth, maxHeight);
+        Anchor clickedPoint = new Anchor(Color.TOMATO, x, y, 5, this, AnchorType.CURVE_POINT, maxWidth, maxHeight);
 //        clickedPoint.setOnMouseClicked(e -> controller.handleCurveClicked(this));
 
         if (!points.isEmpty()) {
@@ -83,6 +94,7 @@ public class Curve {
         curve.setStrokeWidth(4);
         curve.setStrokeLineCap(StrokeLineCap.ROUND);
         curve.setFill(Color.TRANSPARENT);
+
         curve.startXProperty().bind(from.centerXProperty());
         curve.startYProperty().bind(from.centerYProperty());
         curve.endXProperty().bind(to.centerXProperty());
@@ -95,12 +107,100 @@ public class Curve {
         controlPoints.add(control1);
         controlLines.add(controlLine1);
         controlLines.add(controlLine2);
-//        Anchor control2 = new Anchor(Color.FORESTGREEN, curve.controlX2Property(), curve.controlY2Property(), 3);
         group.getChildren().addAll(curve, control1, controlLine2, controlLine1);
         control1.toFront();
         from.toFront();
         to.toFront();
         return curve;
+    }
+
+    private void createNewCurve(double fromX, double fromY, Optional<Double> controlX, Optional<Double> controlY, double toX, double toY) {
+        createInitialNewCurve();
+        createPoint(fromX, fromY);
+
+        addStartAnchorBinding(getLastPoint());
+    }
+
+    private void createInitialNewCurve() {
+        QuadCurve curve = new QuadCurve();
+        curve.setOnMouseClicked(event -> {
+            System.out.println("Line clicked");
+            lineClicked();
+//            event.consume();
+        });
+
+        curve.setStroke(Color.BLUEVIOLET);
+        curve.setStrokeWidth(4);
+        curve.setStrokeLineCap(StrokeLineCap.ROUND);
+        curve.setFill(Color.TRANSPARENT);
+        group.getChildren().add(curve);
+        quadCurves.add(curve);
+    }
+
+    private QuadCurve createInitialNewCurve(double fromX, double fromY, double controlX, double controlY, double toX, double toY) {
+        QuadCurve curve = new QuadCurve();
+        curve.setOnMouseClicked(event -> {
+            System.out.println("Line clicked");
+            lineClicked();
+//            event.consume();
+        });
+
+        curve.setStroke(Color.BLUEVIOLET);
+        curve.setStrokeWidth(4);
+        curve.setStrokeLineCap(StrokeLineCap.ROUND);
+        curve.setFill(Color.TRANSPARENT);
+
+        curve.setStartX(fromX);
+        curve.setStartY(fromY);
+        curve.setControlX(controlX);
+        curve.setControlY(controlY);
+        curve.setEndX(toX);
+        curve.setEndY(toY);
+        return curve;
+    }
+
+    private void setLastCurveStart() {
+//        curve.setStartX(x1)
+    }
+
+    private void createPoint(double x, double y) {
+        Anchor point = new Anchor(Color.TOMATO, x, y, 5, this, AnchorType.CURVE_POINT, maxWidth, maxHeight);
+        points.add(point);
+    }
+
+    private void createControlPoint() {
+        QuadCurve curve = getLastCurve();
+        Line controlLine1 = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.startXProperty(), curve.startYProperty(), this);
+        Line controlLine2 = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.endXProperty(), curve.endYProperty(), this);
+        Anchor control1 = new Anchor(Color.FORESTGREEN, curve.controlXProperty(), curve.controlYProperty(), 3, AnchorType.CONTROL_POINT, maxWidth, maxHeight);
+
+        controlPoints.add(control1);
+        controlLines.add(controlLine1);
+        controlLines.add(controlLine2);
+    }
+
+    private void addStartAnchorBinding(Anchor from) {
+        getLastCurve().startXProperty().bind(from.centerXProperty());
+        getLastCurve().startYProperty().bind(from.centerYProperty());
+    }
+
+    private void addEndAnchorBinding(Anchor end) {
+        getLastCurve().endXProperty().bind(end.centerXProperty());
+        getLastCurve().endYProperty().bind(end.centerYProperty());
+    }
+
+    private double calculateControlX(Anchor from, Anchor to) {
+        double x1 = from.getCenterX(), y1 = from.getCenterY();
+        double x2 = to.getCenterX(), y2 = to.getCenterY();
+        double distance = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+        return x1 + 20 * (x2 - x1) / distance;
+    }
+
+    private double calculateControlY(Anchor from, Anchor to) {
+        double x1 = from.getCenterX(), y1 = from.getCenterY();
+        double x2 = to.getCenterX(), y2 = to.getCenterY();
+        double distance = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+        return y1 + 20 * (y2 - y1) / distance;
     }
 
     public void lineClicked() {
@@ -139,6 +239,14 @@ public class Curve {
         points.forEach(Anchor::toFront);
     }
 
+    private QuadCurve getLastCurve() {
+        return quadCurves.get(quadCurves.size() - 1);
+    }
+
+    private Anchor getLastPoint() {
+        return points.get(points.size() - 1);
+    }
+
     private void closeCurve() {
         QuadCurve quadCurve = quadCurves.get(quadCurves.size() - 1);
         quadCurve.endXProperty().bind(points.get(0).centerXProperty());
@@ -151,5 +259,121 @@ public class Curve {
         anchorToRemove.prepareRemoval();
         group.getChildren().remove(anchorToRemove);
         points.remove(anchorToRemove);
+    }
+
+    public CurveDTO toCurveDTO() {
+        List<CurveSectionDTO> curveSections = quadCurves.stream()
+                .map(this::mapQuadCurveToCurveSectionDTO)
+                .collect(Collectors.toList());
+        return new CurveDTO(curveSections);
+    }
+
+    private CurveSectionDTO mapQuadCurveToCurveSectionDTO(QuadCurve quadCurve) {
+        return CurveSectionDTO.builder()
+                .start(new PointDTO(quadCurve.getStartX(), quadCurve.getStartY()))
+                .control(new PointDTO(quadCurve.getControlX(), quadCurve.getControlY()))
+                .end(new PointDTO(quadCurve.getEndX(), quadCurve.getEndY()))
+                .build();
+    }
+
+    public void fromCurveDTO(CurveDTO curveDTO) {
+        List<CurveSectionDTO> curveSectionDTOS = curveDTO.getCurveSectionDTOS();
+        curveSectionDTOS.stream()
+                .map(this::mapToQuadCurve)
+                .forEach(quadCurves::add);
+
+        for(int i = 0; i<quadCurves.size(); i++) {
+            if(i == 0) {
+                initFirstQuadCurve();
+            } else if(i == quadCurves.size() - 1) {
+                initLastQuadCurve();
+            } else {
+                initMiddleQuadCurve(i);
+            }
+        }
+        isClosed = true;
+    }
+
+    private QuadCurve mapToQuadCurve(CurveSectionDTO curveSectionDTO) {
+        PointDTO start = curveSectionDTO.getStart();
+        PointDTO control = curveSectionDTO.getControl();
+        PointDTO end = curveSectionDTO.getEnd();
+        return createInitialNewCurve(start.getX(), start.getY(), control.getX(), control.getY(), end.getX(), end.getY());
+    }
+
+    private void initFirstQuadCurve() {
+        QuadCurve curve = quadCurves.get(0);
+        Anchor start = new Anchor(Color.TOMATO, curve.getStartX(), curve.getStartY(), 5, this, AnchorType.CURVE_POINT, maxWidth, maxHeight);
+        Anchor end = new Anchor(Color.TOMATO, curve.getEndX(), curve.getEndY(), 5, this, AnchorType.CURVE_POINT, maxWidth, maxHeight);
+        Anchor control = new Anchor(Color.FORESTGREEN, curve.controlXProperty(), curve.controlYProperty(), 3, AnchorType.CONTROL_POINT, maxWidth, maxHeight);
+
+        curve.startXProperty().bind(start.centerXProperty());
+        curve.startYProperty().bind(start.centerYProperty());
+
+        curve.endXProperty().bind(end.centerXProperty());
+        curve.endYProperty().bind(end.centerYProperty());
+
+        Line controlLineToStart = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.startXProperty(), curve.startYProperty(), this);
+        Line controlLineToEnd = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.endXProperty(), curve.endYProperty(), this);
+
+        points.add(start);
+        points.add(end);
+
+        controlPoints.add(control);
+        controlLines.add(controlLineToStart);
+        controlLines.add(controlLineToEnd);
+        group.getChildren().addAll(curve, control, controlLineToStart, controlLineToEnd, start, end);
+        control.toFront();
+        start.toFront();
+        end.toFront();
+    }
+
+    private void initMiddleQuadCurve(int position) {
+        QuadCurve curve = quadCurves.get(position);
+        Anchor start = getLastPoint();
+        Anchor end = new Anchor(Color.TOMATO, curve.getEndX(), curve.getEndY(), 5, this, AnchorType.CURVE_POINT, maxWidth, maxHeight);
+        Anchor control = new Anchor(Color.FORESTGREEN, curve.controlXProperty(), curve.controlYProperty(), 3, AnchorType.CONTROL_POINT, maxWidth, maxHeight);
+
+        curve.startXProperty().bind(start.centerXProperty());
+        curve.startYProperty().bind(start.centerYProperty());
+
+        curve.endXProperty().bind(end.centerXProperty());
+        curve.endYProperty().bind(end.centerYProperty());
+
+        Line controlLineToStart = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.startXProperty(), curve.startYProperty(), this);
+        Line controlLineToEnd = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.endXProperty(), curve.endYProperty(), this);
+
+        points.add(end);
+        controlPoints.add(control);
+        controlLines.add(controlLineToStart);
+        controlLines.add(controlLineToEnd);
+        group.getChildren().addAll(curve, control, controlLineToStart, controlLineToEnd, end);
+        control.toFront();
+        start.toFront();
+        end.toFront();
+    }
+
+    private void initLastQuadCurve() {
+        QuadCurve curve = getLastCurve();
+        Anchor start = getLastPoint();
+        Anchor end = points.get(0);
+        Anchor control = new Anchor(Color.FORESTGREEN, curve.controlXProperty(), curve.controlYProperty(), 3, AnchorType.CONTROL_POINT, maxWidth, maxHeight);
+
+        curve.startXProperty().bind(start.centerXProperty());
+        curve.startYProperty().bind(start.centerYProperty());
+
+        curve.endXProperty().bind(end.centerXProperty());
+        curve.endYProperty().bind(end.centerYProperty());
+
+        Line controlLineToStart = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.startXProperty(), curve.startYProperty(), this);
+        Line controlLineToEnd = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.endXProperty(), curve.endYProperty(), this);
+
+        controlPoints.add(control);
+        controlLines.add(controlLineToStart);
+        controlLines.add(controlLineToEnd);
+        group.getChildren().addAll(curve, control, controlLineToStart, controlLineToEnd);
+        control.toFront();
+        start.toFront();
+        end.toFront();
     }
 }
