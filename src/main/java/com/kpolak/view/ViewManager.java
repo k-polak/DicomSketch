@@ -42,7 +42,6 @@ public class ViewManager {
         init();
     }
 
-
     public Scene getScene() {
         return scene;
     }

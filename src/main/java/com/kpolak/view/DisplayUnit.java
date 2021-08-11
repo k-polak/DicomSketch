@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class DisplayUnit {
     private List<Curve> curves = new LinkedList<>();
     private Curve focusedCurve = null;
+    private Curve startedCurve = null;
     BufferedImage frame;
     Group overlay;
     MainDisplay mainDisplay;
@@ -29,9 +30,10 @@ public class DisplayUnit {
     }
 
     private void createNewCurve(double x, double y, Group group) {
-        Curve newCurve = new Curve(group, mainDisplay, frame.getWidth(), frame.getHeight());
+        Curve newCurve = new Curve(group, this, frame.getWidth(), frame.getHeight());
         newCurve.handleClick(x, y);
         focusedCurve = newCurve;
+        startedCurve = newCurve;
         curves.add(newCurve);
     }
 
@@ -76,7 +78,7 @@ public class DisplayUnit {
     }
 
     private Curve buildCurveFromDTO(CurveDTO curveDTO) {
-        Curve curve = new Curve(overlay, mainDisplay, frame.getWidth(), frame.getHeight());
+        Curve curve = new Curve(overlay, this, frame.getWidth(), frame.getHeight());
         curve.fromCurveDTO(curveDTO);
         return curve;
     }
@@ -92,7 +94,13 @@ public class DisplayUnit {
                 if (focusedCurve != null) {
                     if (focusedCurve.isClosed) {
                         curves.forEach(Curve::removeHighlight);
-                        createNewCurve(x, y, overlay);
+                        if (!focusedCurve.equals(startedCurve)) {
+                            startedCurve.highlight();
+                            startedCurve.handleClick(x, y);
+                            focusedCurve = startedCurve;
+                        } else {
+                            createNewCurve(x, y, overlay);
+                        }
                     } else {
                         focusedCurve.handleClick(x, y);
                     }

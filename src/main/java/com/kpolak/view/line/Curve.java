@@ -3,7 +3,7 @@ package com.kpolak.view.line;
 import com.kpolak.api.CurveDTO;
 import com.kpolak.api.CurveSectionDTO;
 import com.kpolak.api.PointDTO;
-import com.kpolak.view.MainDisplay;
+import com.kpolak.view.DisplayUnit;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -25,11 +25,11 @@ public class Curve {
     List<Line> controlLines;
     List<QuadCurve> quadCurves;
     Group group;
-    MainDisplay controller;
+    DisplayUnit controller;
     double maxWidth;
     double maxHeight;
 
-    public Curve(Group group, MainDisplay controller, double maxWidth, double maxHeight) {
+    public Curve(Group group, DisplayUnit controller, double maxWidth, double maxHeight) {
         isClosed = false;
         this.controller = controller;
         points = new LinkedList<>();
