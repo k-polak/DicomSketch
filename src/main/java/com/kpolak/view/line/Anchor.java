@@ -40,6 +40,11 @@ class Anchor extends Circle {
         enableDrag();
     }
 
+    public void addBinding(DoubleProperty x, DoubleProperty y) {
+        x.bind(centerXProperty());
+        y.bind(centerYProperty());
+    }
+
     void prepareRemoval() {
         getScene().setCursor(Cursor.DEFAULT);
     }

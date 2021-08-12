@@ -1,17 +1,14 @@
 package com.kpolak.view;
 
 import com.kpolak.model.Dicom;
-import com.kpolak.view.line.Curve;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
@@ -22,28 +19,31 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 import java.awt.image.BufferedImage;
-import java.util.LinkedList;
-import java.util.List;
 
 public class MainDisplay extends Pane {
-    private List<Curve> curves = new LinkedList<>();
-    private Curve focusedCurve = null;
-    private Dicom dicom;
+    private final FrameTraverser frameTraverser;
+    private final Dicom dicom;
     private ImageView imageView;
-    private int currentFrame;
+    private Pane imagePane;
 
     public MainDisplay(Dicom dicom) {
         this.dicom = dicom;
+        frameTraverser = new FrameTraverser(this, dicom);
+        init();
+    }
+
+    private void init() {
         setMaxSize(dicom.getWidth(), dicom.getHeight());
         setMinSize(dicom.getWidth(), dicom.getHeight());
         setBackground(Background.EMPTY);
-        Pane imagePane = createImagePane();
 
+        createImagePane();
         PanAndZoomPane panAndZoomPane = createPaneAndZoomPane();
         panAndZoomPane.getChildren().add(imagePane);
         ScrollPane scrollPane = createScrollPane(panAndZoomPane);
-        getChildren().add(scrollPane);
 
+        getChildren().add(scrollPane);
+        showDisplayUnit(frameTraverser.current());
     }
 
     private ScrollPane createScrollPane(PanAndZoomPane panAndZoomPane) {
@@ -72,7 +72,7 @@ public class MainDisplay extends Pane {
     }
 
     private Pane createImagePane() {
-        Pane imagePane = new Pane();
+        imagePane = new Pane();
         imagePane.setMaxSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setMinSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setBackground(Background.EMPTY);
@@ -84,35 +84,13 @@ public class MainDisplay extends Pane {
         group1.setManaged(false);
 
         imagePane.getChildren().add(group1);
-        imagePane.setOnMouseClicked(getMouseEventHandlerForImagePane(group1));
+        imagePane.setOnMouseClicked(this::getMouseEventHandlerForImagePane);
 
         return imagePane;
     }
 
-    private EventHandler<MouseEvent> getMouseEventHandlerForImagePane(Group group) {
-        return event -> {
-            double x = event.getX(), y = event.getY();
-            System.out.println("Clicked x: " + x + "  y: " + y);
-
-            if (event.getButton() == MouseButton.SECONDARY) {
-                if (curves.isEmpty()) {
-                    createNewCurve(x, y, group);
-                } else {
-                    if (focusedCurve != null) {
-                        if (focusedCurve.isClosed) {
-                            curves.forEach(Curve::removeHighlight);
-                            createNewCurve(x, y, group);
-                        } else {
-                            focusedCurve.handleClick(x, y);
-                        }
-                    } else {
-                        createNewCurve(x, y, group);
-                    }
-                }
-            } else if (event.getButton() == MouseButton.PRIMARY) {
-                //
-            }
-        };
+    private void getMouseEventHandlerForImagePane(MouseEvent event) {
+        frameTraverser.current().handleMouseEvent(event);
     }
 
     private StackPane createImageHolder() {
@@ -131,45 +109,26 @@ public class MainDisplay extends Pane {
     }
 
     void nextFrame() {
-        if (currentFrame < dicom.getFrames().size()) {
-            currentFrame++;
-        }
-        showFrame();
+        DisplayUnit displayUnit = frameTraverser.next();
+        showDisplayUnit(displayUnit);
     }
 
     void previousFrame() {
-        if (currentFrame > 1) {
-            currentFrame--;
-        }
-        showFrame();
+        DisplayUnit displayUnit = frameTraverser.previous();
+        showDisplayUnit(displayUnit);
     }
 
-    private void showFrame() {
-        BufferedImage buffer = dicom.getFrames().get(currentFrame);
-        imageView.setImage(SwingFXUtils.toFXImage(buffer, null));
-//        =============REMEMBER==========
-//        imageHolder.setMaxSize(buffer.getWidth(), buffer.getHeight());
-//        imageHolder.setMinSize(buffer.getWidth(), buffer.getHeight());
-//        imagePane.setMaxSize(buffer.getWidth(), buffer.getHeight());
-//        imagePane.setMinSize(buffer.getWidth(), buffer.getHeight());
-
-//        setMaxSize(buffer.getWidth(), buffer.getHeight());
-//        setMinSize(buffer.getWidth(), buffer.getHeight());
+    void showDisplayUnit(DisplayUnit displayUnit) {
+        showFrame(displayUnit.frame);
+        showOverlay(displayUnit.overlay);
     }
 
-
-    private void createNewCurve(double x, double y, Group group) {
-        Curve newCurve = new Curve(group, this, dicom.getWidth(), dicom.getHeight());
-        newCurve.handleClick(x, y);
-        focusedCurve = newCurve;
-        curves.add(newCurve);
+    void showFrame(BufferedImage frame) {
+        imageView.setImage(SwingFXUtils.toFXImage(frame, null));
     }
 
-    public void handleCurveClicked(Curve curve) {
-        if (focusedCurve != null && !focusedCurve.equals(curve)) {
-            focusedCurve.removeHighlight();
-            curve.highlight();
-            focusedCurve = curve;
-        }
+    void showOverlay(Group group) {
+        imagePane.getChildren().removeIf(child -> child instanceof Group);
+        imagePane.getChildren().add(group);
     }
 }

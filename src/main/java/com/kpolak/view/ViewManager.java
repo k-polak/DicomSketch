@@ -42,7 +42,6 @@ public class ViewManager {
         init();
     }
 
-
     public Scene getScene() {
         return scene;
     }
@@ -108,10 +107,16 @@ public class ViewManager {
 
     private List<Button> getButtons() {
         Button nextFrameButton = new Button("Next");
-        nextFrameButton.setOnMouseClicked(e -> currentMainDisplay.nextFrame());
+        nextFrameButton.setOnMouseClicked(e -> {
+            System.out.println("Next button clicked");
+            currentMainDisplay.nextFrame();
+        });
 
         Button previousFrameButton = new Button("Previous");
-        previousFrameButton.setOnMouseClicked(e -> currentMainDisplay.previousFrame());
+        previousFrameButton.setOnMouseClicked(e ->{
+            System.out.println("Previous button clicked");
+            currentMainDisplay.previousFrame();
+        });
         return Arrays.asList(previousFrameButton, nextFrameButton);
     }
 
