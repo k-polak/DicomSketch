@@ -48,7 +48,7 @@ public class FrameTraverser {
         DisplayUnit nextDisplayUnit = current();
         if (!currentDisplayUnit.isEmpty() && nextDisplayUnit.isEmpty()) {
             Curve currentFocusedCurve = currentDisplayUnit.getFocusedCurve();
-            Optional<UUID> curveUUID = currentFocusedCurve == null ? Optional.empty() : currentFocusedCurve.getId();
+            Optional<String> curveUUID = currentFocusedCurve == null ? Optional.empty() : currentFocusedCurve.getId();
             nextDisplayUnit.withCurves(currentDisplayUnit.getCurvesDTO(), curveUUID);
         }
         return current();

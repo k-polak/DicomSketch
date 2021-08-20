@@ -10,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class DisplayUnit {
@@ -63,14 +62,14 @@ public class DisplayUnit {
                 .collect(Collectors.toList());
     }
 
-    public void withCurves(List<CurveDTO> curveDTOS, Optional<UUID> highlightedCurve) {
+    public void withCurves(List<CurveDTO> curveDTOS, Optional<String> highlightedCurve) {
         curves = curveDTOS.stream()
                 .map(this::buildCurveFromDTO)
                 .collect(Collectors.toList());
         highlightedCurve.ifPresent(this::highlightCurveById);
     }
 
-    private void highlightCurveById(UUID uuid) {
+    private void highlightCurveById(String uuid) {
         curves.stream()
                 .filter(curve -> curve.getId().isPresent() && curve.getId().get().equals(uuid))
                 .findFirst()

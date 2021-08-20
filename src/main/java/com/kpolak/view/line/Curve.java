@@ -4,6 +4,7 @@ import com.kpolak.api.CurveDTO;
 import com.kpolak.api.CurveSectionDTO;
 import com.kpolak.api.PointDTO;
 import com.kpolak.view.DisplayUnit;
+import com.kpolak.view.SimpleSequenceGenerator;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 
 public class Curve {
     private static final int POINT_MERGE_THRESHOLD = 10;
-    private Optional<UUID> id = Optional.of(UUID.randomUUID());
+    private Optional<String> id;
     public boolean isClosed;
     List<Anchor> points;
     List<Anchor> controlPoints;
@@ -30,6 +31,7 @@ public class Curve {
     double maxHeight;
 
     public Curve(Group group, DisplayUnit controller, double maxWidth, double maxHeight) {
+        id = Optional.of(SimpleSequenceGenerator.next());
         isClosed = false;
         this.controller = controller;
         points = new LinkedList<>();
@@ -41,7 +43,7 @@ public class Curve {
         this.maxHeight = maxHeight;
     }
 
-    public Optional<UUID> getId() {
+    public Optional<String> getId() {
         return id;
     }
 
