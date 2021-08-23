@@ -7,6 +7,7 @@ import com.kpolak.view.line.Curve;
 
 import java.awt.image.BufferedImage;
 import java.util.AbstractMap;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -62,6 +63,10 @@ public class FrameTraverser {
             currentIndex = lowerKey;
         }
         return current();
+    }
+
+    public Collection<DisplayUnit> getAllDisplayUnits() {
+        return loadedFrames.values();
     }
 
     public int getCurrentPositionInLoadedFrames() {

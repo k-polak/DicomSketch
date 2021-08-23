@@ -157,4 +157,8 @@ public class MainDisplay extends Pane {
         frameTraverser.loadAnotherFrame(dicom);
         updateFrameNumberLabel();
     }
+
+    public void exportCurves(){
+
+    }
 }

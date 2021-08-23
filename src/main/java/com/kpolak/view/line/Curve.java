@@ -47,6 +47,14 @@ public class Curve {
         return id;
     }
 
+    public List<Anchor> getPoints() {
+        return points;
+    }
+
+    public List<Anchor> getControlPoints() {
+        return controlPoints;
+    }
+
     public void handleMoveTo(double x, double y, Anchor anchor) {
         if (isPointMergeValid(anchor)) {
             handleAnchorMerge();

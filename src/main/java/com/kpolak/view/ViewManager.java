@@ -119,7 +119,11 @@ public class ViewManager {
             System.out.println("Previous button clicked");
             currentMainDisplay.previousFrame();
         });
-        return Arrays.asList(previousFrameButton, nextFrameButton);
+        Button exportCurvesButton = new Button("Previous");
+        exportCurvesButton.setOnMouseClicked(e -> {
+            currentMainDisplay.exportCurves();
+        });
+        return Arrays.asList(previousFrameButton, nextFrameButton, exportCurvesButton);
     }
 
     private VBox createMenu() {
