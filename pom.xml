@@ -60,6 +60,11 @@
             <artifactId>dcm4che-imageio-opencv</artifactId>
             <version>${dcm4che.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1.1-jre</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -85,6 +90,15 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>1.4.0</version>
+                    <configuration>
+                        <mainClass>com.kpolak.view.Main</mainClass>
+                    </configuration>
                 </plugin>
 
                 <plugin>

@@ -1,5 +1,7 @@
 package com.kpolak.view;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.kpolak.model.Dicom;
 import com.kpolak.view.line.Curve;
 
@@ -8,8 +10,8 @@ import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class FrameTraverser {
@@ -60,5 +62,26 @@ public class FrameTraverser {
             currentIndex = lowerKey;
         }
         return current();
+    }
+
+    public int getCurrentPositionInLoadedFrames() {
+        return getNumberOfLoadedFrames() - Iterables.indexOf(loadedFrames.descendingKeySet(), id -> id.equals(current().frameId));
+    }
+
+    public int getNumberOfLoadedFrames() {
+        return loadedFrames.size();
+    }
+
+    public void loadAnotherFrame(Dicom dicom) {
+        Set<Integer> newFrames = Sets.difference(dicom.getFrames().keySet(), loadedFrames.keySet());
+
+        if (newFrames.size() > 1) {
+            throw new RuntimeException("Updating FrameTraverser with multiframe dicom");
+        } else if(newFrames.isEmpty()) {
+            throw new RuntimeException("Error while loading next frame into existing frameTraverser");
+        }
+
+        Integer frameId = newFrames.iterator().next();
+        loadedFrames.put(frameId, new DisplayUnit(dicom.getFrames().get(frameId), frameId, mainDisplay));
     }
 }

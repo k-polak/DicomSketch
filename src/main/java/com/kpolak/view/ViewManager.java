@@ -66,8 +66,10 @@ public class ViewManager {
         return bottom;
     }
 
-    public MainDisplay createMainDisplayIfNecessary(Dicom newDicom) {
-        return getMainDisplayByDicom(newDicom).orElseGet(() -> createMainDisplay(newDicom));
+    public MainDisplay updateOrCreateMainDisplay(Dicom newDicom) {
+        Optional<MainDisplay> mainDisplay  =getMainDisplayByDicom(newDicom);
+        mainDisplay.ifPresent(display -> display.loadAnotherFrame(newDicom));
+        return mainDisplay.orElseGet(() -> createMainDisplay(newDicom));
     }
 
     public MainDisplay createMainDisplay(Dicom newDicom) {
@@ -159,8 +161,9 @@ public class ViewManager {
     private void handleSingleFileChosen(File dicomFile) {
         if (dicomFile != null) {
             Dicom selectedDicom = dicomReader.readDicomFromFile(dicomFile.getAbsolutePath());
+//            TODO: Do not rebuild thumbnail container if it isn't necessary
             leftSideThumbnailContainer.buildThumbnailContainer();
-            MainDisplay mainDisplay = createMainDisplayIfNecessary(selectedDicom);
+            MainDisplay mainDisplay = updateOrCreateMainDisplay(selectedDicom);
             setCurrentMainDisplay(mainDisplay);
         }
     }
@@ -177,7 +180,7 @@ public class ViewManager {
                 if (mainDisplay.isPresent()) {
                     setCurrentMainDisplay(mainDisplay.get());
                 } else {
-                    throw new RuntimeException("Couldnt find main display after first load");
+                    throw new RuntimeException("Couldn't find main display after first load");
                 }
             }
         }

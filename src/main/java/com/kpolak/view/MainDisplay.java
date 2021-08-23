@@ -16,7 +16,12 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 
 import java.awt.image.BufferedImage;
 
@@ -25,6 +30,7 @@ public class MainDisplay extends Pane {
     private final Dicom dicom;
     private ImageView imageView;
     private Pane imagePane;
+    private Text textNumberLabel;
 
     public MainDisplay(Dicom dicom) {
         this.dicom = dicom;
@@ -42,7 +48,12 @@ public class MainDisplay extends Pane {
         panAndZoomPane.getChildren().add(imagePane);
         ScrollPane scrollPane = createScrollPane(panAndZoomPane);
 
-        getChildren().add(scrollPane);
+        textNumberLabel = new Text();
+        textNumberLabel.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        VBox vbox = new VBox(scrollPane, textNumberLabel);
+        vbox.setAlignment(Pos.CENTER);
+        getChildren().add(vbox);
+
         showDisplayUnit(frameTraverser.current());
     }
 
@@ -116,11 +127,13 @@ public class MainDisplay extends Pane {
     void previousFrame() {
         DisplayUnit displayUnit = frameTraverser.previous();
         showDisplayUnit(displayUnit);
+        updateFrameNumberLabel();
     }
 
     void showDisplayUnit(DisplayUnit displayUnit) {
         showFrame(displayUnit.frame);
         showOverlay(displayUnit.overlay);
+        updateFrameNumberLabel();
     }
 
     void showFrame(BufferedImage frame) {
@@ -130,5 +143,18 @@ public class MainDisplay extends Pane {
     void showOverlay(Group group) {
         imagePane.getChildren().removeIf(child -> child instanceof Group);
         imagePane.getChildren().add(group);
+    }
+
+    private void updateFrameNumberLabel() {
+        textNumberLabel.setText(getFrameNumberLabel());
+    }
+
+    private String getFrameNumberLabel() {
+        return "Frame number: " + frameTraverser.getCurrentPositionInLoadedFrames() + "/" + frameTraverser.getNumberOfLoadedFrames();
+    }
+
+    public void loadAnotherFrame(Dicom dicom) {
+        frameTraverser.loadAnotherFrame(dicom);
+        updateFrameNumberLabel();
     }
 }
