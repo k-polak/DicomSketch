@@ -77,6 +77,7 @@ public class DicomReader {
                 .instanceNumber(instanceNumber)
                 .width(width)
                 .height(height)
+                .path(path)
                 .build();
 
         if (dicom.getInstanceNumber() == -1) {

@@ -1,12 +1,12 @@
 package com.kpolak.hierarchy;
 
+import com.kpolak.external.OutlineImporter;
 import com.kpolak.model.Dicom;
 import com.kpolak.model.Series;
 
 public class SeriesNode {
     Series series;
     Dicom images;
-
 
     public SeriesNode(Dicom dicom) {
         series = dicom.getSeries();
@@ -24,6 +24,7 @@ public class SeriesNode {
     public void add(Dicom dicom) {
         if (images == null) {
             images = dicom;
+            images.setDicomOutlineDTO(OutlineImporter.importOutline(dicom));
         } else {
             Integer instanceNumber = dicom.getInstanceNumber();
 

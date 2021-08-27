@@ -292,10 +292,10 @@ public class Curve {
                 .map(this::mapToQuadCurve)
                 .forEach(quadCurves::add);
 
-        for(int i = 0; i<quadCurves.size(); i++) {
-            if(i == 0) {
+        for (int i = 0; i < quadCurves.size(); i++) {
+            if (i == 0) {
                 initFirstQuadCurve();
-            } else if(i == quadCurves.size() - 1) {
+            } else if (i == quadCurves.size() - 1) {
                 initLastQuadCurve();
             } else {
                 initMiddleQuadCurve(i);

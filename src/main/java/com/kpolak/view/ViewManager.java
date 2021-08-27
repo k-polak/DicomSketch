@@ -67,7 +67,7 @@ public class ViewManager {
     }
 
     public MainDisplay updateOrCreateMainDisplay(Dicom newDicom) {
-        Optional<MainDisplay> mainDisplay  =getMainDisplayByDicom(newDicom);
+        Optional<MainDisplay> mainDisplay = getMainDisplayByDicom(newDicom);
         mainDisplay.ifPresent(display -> display.loadAnotherFrame(newDicom));
         return mainDisplay.orElseGet(() -> createMainDisplay(newDicom));
     }
@@ -119,10 +119,8 @@ public class ViewManager {
             System.out.println("Previous button clicked");
             currentMainDisplay.previousFrame();
         });
-        Button exportCurvesButton = new Button("Previous");
-        exportCurvesButton.setOnMouseClicked(e -> {
-            currentMainDisplay.exportCurves();
-        });
+        Button exportCurvesButton = new Button("Export curves");
+        exportCurvesButton.setOnMouseClicked(e -> currentMainDisplay.exportCurves());
         return Arrays.asList(previousFrameButton, nextFrameButton, exportCurvesButton);
     }
 

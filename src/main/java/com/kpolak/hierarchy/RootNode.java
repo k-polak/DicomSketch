@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class RootNode {
-    private List<PatientNode> patients;
+    private final List<PatientNode> patients;
 
     public RootNode() {
         patients = new ArrayList<>();

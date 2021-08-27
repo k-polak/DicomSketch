@@ -36,6 +36,10 @@ public class DisplayUnit {
         curves.add(newCurve);
     }
 
+    public Integer getFrameId() {
+        return frameId;
+    }
+
     public List<Curve> getCurves() {
         return curves;
     }
@@ -56,6 +60,12 @@ public class DisplayUnit {
         return curves.isEmpty();
     }
 
+    public void clearCurves() {
+        curves.clear();
+        focusedCurve = null;
+        startedCurve = null;
+    }
+
     public List<CurveDTO> getCurvesDTO() {
         return curves.stream()
                 .map(Curve::toCurveDTO)
@@ -67,6 +77,16 @@ public class DisplayUnit {
                 .map(this::buildCurveFromDTO)
                 .collect(Collectors.toList());
         highlightedCurve.ifPresent(this::highlightCurveById);
+    }
+
+    public void withCurvesFromFile(List<CurveDTO> curveDTOS) {
+        curves = curveDTOS.stream()
+                .map(this::buildCurveFromDTO)
+                .collect(Collectors.toList());
+        curves.forEach(Curve::removeHighlight);
+        curves.get(0).highlight();
+        focusedCurve = curves.get(0);
+        startedCurve = curves.get(0);
     }
 
     private void highlightCurveById(String uuid) {

@@ -1,5 +1,6 @@
 package com.kpolak.view;
 
+import com.kpolak.external.OutlineExporter;
 import com.kpolak.model.Dicom;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -27,6 +28,7 @@ import java.awt.image.BufferedImage;
 
 public class MainDisplay extends Pane {
     private final FrameTraverser frameTraverser;
+    private final OutlineExporter outlineExporter;
     private final Dicom dicom;
     private ImageView imageView;
     private Pane imagePane;
@@ -35,6 +37,7 @@ public class MainDisplay extends Pane {
     public MainDisplay(Dicom dicom) {
         this.dicom = dicom;
         frameTraverser = new FrameTraverser(this, dicom);
+        outlineExporter = new OutlineExporter(frameTraverser);
         init();
     }
 
@@ -158,7 +161,7 @@ public class MainDisplay extends Pane {
         updateFrameNumberLabel();
     }
 
-    public void exportCurves(){
-
+    public void exportCurves() {
+        outlineExporter.exportOutline(dicom);
     }
 }

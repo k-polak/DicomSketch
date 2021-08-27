@@ -2,12 +2,20 @@ package com.kpolak.view;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.kpolak.api.CurveDTO;
+import com.kpolak.api.CurveSectionDTO;
+import com.kpolak.api.PointDTO;
+import com.kpolak.external.api.JsonCurveDTO;
+import com.kpolak.external.api.JsonCurveSectionDTO;
+import com.kpolak.external.api.JsonDicomOutlineDTO;
+import com.kpolak.external.api.JsonPointDTO;
 import com.kpolak.model.Dicom;
 import com.kpolak.view.line.Curve;
 
 import java.awt.image.BufferedImage;
 import java.util.AbstractMap;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +44,7 @@ public class FrameTraverser {
         size = loadedFrames.lastKey();
         notNullFrames = loadedFrames.values().stream().filter(Objects::nonNull).count();
         currentIndex = loadedFrames.firstKey();
+        dicom.getDicomOutlineDTO().ifPresent(this::loadOutline);
     }
 
     public DisplayUnit current() {
@@ -82,11 +91,48 @@ public class FrameTraverser {
 
         if (newFrames.size() > 1) {
             throw new RuntimeException("Updating FrameTraverser with multiframe dicom");
-        } else if(newFrames.isEmpty()) {
+        } else if (newFrames.isEmpty()) {
             throw new RuntimeException("Error while loading next frame into existing frameTraverser");
         }
 
         Integer frameId = newFrames.iterator().next();
         loadedFrames.put(frameId, new DisplayUnit(dicom.getFrames().get(frameId), frameId, mainDisplay));
+    }
+
+    private void loadOutline(JsonDicomOutlineDTO outline) {
+        outline.getFrames().stream()
+                .filter(jsonFrame -> !jsonFrame.getCurves().isEmpty())
+                .forEach(frame -> {
+                    DisplayUnit displayUnit = loadedFrames.get(Integer.parseInt(frame.getFrameNumber()));
+                    if (displayUnit != null) {
+                        displayUnit.clearCurves();
+                        displayUnit.withCurvesFromFile(mapToCurvesDTO(frame.getCurves()));
+                    }
+                });
+    }
+
+    private List<CurveDTO> mapToCurvesDTO(List<JsonCurveDTO> jsonCurves) {
+        return jsonCurves.stream()
+                .map(this::mapToCurvesDTO)
+                .collect(Collectors.toList());
+    }
+
+    private CurveDTO mapToCurvesDTO(JsonCurveDTO jsonCurve) {
+        List<CurveSectionDTO> curveSection = jsonCurve.getCurveSections().stream()
+                .map(this::mapToCurveSectionDTO)
+                .collect(Collectors.toList());
+        return new CurveDTO(curveSection);
+    }
+
+    private CurveSectionDTO mapToCurveSectionDTO(JsonCurveSectionDTO jsonCurveSection) {
+        return new CurveSectionDTO(
+                mapToPointDTO(jsonCurveSection.getStart()),
+                mapToPointDTO(jsonCurveSection.getEnd()),
+                mapToPointDTO(jsonCurveSection.getControl())
+        );
+    }
+
+    private PointDTO mapToPointDTO(JsonPointDTO jsonPoint) {
+        return new PointDTO(jsonPoint.getX(), jsonPoint.getY());
     }
 }
