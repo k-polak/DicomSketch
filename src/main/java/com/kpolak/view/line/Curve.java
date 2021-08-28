@@ -30,8 +30,13 @@ public class Curve {
     double maxWidth;
     double maxHeight;
 
-    public Curve(Group group, DisplayUnit controller, double maxWidth, double maxHeight) {
-        id = Optional.of(SimpleSequenceGenerator.next());
+    public Curve(Group group, DisplayUnit controller, double maxWidth, double maxHeight, Optional<String> id) {
+        if (id.isPresent()) {
+            this.id = id;
+        } else {
+            this.id = Optional.of(SimpleSequenceGenerator.next());
+        }
+
         isClosed = false;
         this.controller = controller;
         points = new LinkedList<>();
@@ -124,6 +129,13 @@ public class Curve {
         return curve;
     }
 
+    public void clear() {
+        points.forEach(point -> group.getChildren().remove(point));
+        controlPoints.forEach(controlPoint -> group.getChildren().remove(controlPoint));
+        controlLines.forEach(controlLine -> group.getChildren().remove(controlLine));
+        quadCurves.forEach(quadCurve -> group.getChildren().remove(quadCurve));
+    }
+
     private void createNewCurve(double fromX, double fromY, Optional<Double> controlX, Optional<Double> controlY, double toX, double toY) {
         createInitialNewCurve();
         createPoint(fromX, fromY);
@@ -167,10 +179,6 @@ public class Curve {
         curve.setEndX(toX);
         curve.setEndY(toY);
         return curve;
-    }
-
-    private void setLastCurveStart() {
-//        curve.setStartX(x1)
     }
 
     private void createPoint(double x, double y) {
@@ -275,7 +283,7 @@ public class Curve {
         List<CurveSectionDTO> curveSections = quadCurves.stream()
                 .map(this::mapQuadCurveToCurveSectionDTO)
                 .collect(Collectors.toList());
-        return new CurveDTO(curveSections);
+        return new CurveDTO(curveSections, id);
     }
 
     private CurveSectionDTO mapQuadCurveToCurveSectionDTO(QuadCurve quadCurve) {

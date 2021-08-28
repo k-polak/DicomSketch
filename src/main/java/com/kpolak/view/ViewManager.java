@@ -9,6 +9,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -57,6 +59,17 @@ public class ViewManager {
         borderPane.setLeft(leftSideThumbnailContainer);
         borderPane.setCenter(getEmptyMainWindow());
         borderPane.setTop(createMenu());
+        registerKeyActions();
+    }
+
+    private void registerKeyActions() {
+        scene.setOnKeyPressed(this::handleKeyPressed);
+    }
+
+    private void handleKeyPressed(KeyEvent event) {
+        if (event.getCode() == KeyCode.DELETE) {
+            currentMainDisplay.handleDelete();
+        }
     }
 
     private HBox getBottomButtons() {
@@ -115,7 +128,7 @@ public class ViewManager {
         });
 
         Button previousFrameButton = new Button("Previous");
-        previousFrameButton.setOnMouseClicked(e ->{
+        previousFrameButton.setOnMouseClicked(e -> {
             System.out.println("Previous button clicked");
             currentMainDisplay.previousFrame();
         });

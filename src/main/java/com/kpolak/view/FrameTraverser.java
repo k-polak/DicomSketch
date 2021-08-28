@@ -121,7 +121,7 @@ public class FrameTraverser {
         List<CurveSectionDTO> curveSection = jsonCurve.getCurveSections().stream()
                 .map(this::mapToCurveSectionDTO)
                 .collect(Collectors.toList());
-        return new CurveDTO(curveSection);
+        return new CurveDTO(curveSection, Optional.empty());
     }
 
     private CurveSectionDTO mapToCurveSectionDTO(JsonCurveSectionDTO jsonCurveSection) {

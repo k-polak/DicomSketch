@@ -164,4 +164,8 @@ public class MainDisplay extends Pane {
     public void exportCurves() {
         outlineExporter.exportOutline(dicom);
     }
+
+    public void handleDelete() {
+        frameTraverser.current().handleDelete();
+    }
 }

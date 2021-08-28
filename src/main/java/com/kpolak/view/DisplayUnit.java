@@ -29,7 +29,7 @@ public class DisplayUnit {
     }
 
     private void createNewCurve(double x, double y, Group group) {
-        Curve newCurve = new Curve(group, this, frame.getWidth(), frame.getHeight());
+        Curve newCurve = new Curve(group, this, frame.getWidth(), frame.getHeight(), Optional.empty());
         newCurve.handleClick(x, y);
         focusedCurve = newCurve;
         startedCurve = newCurve;
@@ -76,6 +76,7 @@ public class DisplayUnit {
         curves = curveDTOS.stream()
                 .map(this::buildCurveFromDTO)
                 .collect(Collectors.toList());
+        curves.forEach(Curve::removeHighlight);
         highlightedCurve.ifPresent(this::highlightCurveById);
     }
 
@@ -93,11 +94,32 @@ public class DisplayUnit {
         curves.stream()
                 .filter(curve -> curve.getId().isPresent() && curve.getId().get().equals(uuid))
                 .findFirst()
-                .ifPresent(Curve::highlight);
+                .ifPresent(curve -> {
+                    curve.highlight();
+                    focusedCurve = curve;
+                    startedCurve = curve;
+                });
+    }
+
+    public void handleDelete() {
+        if (focusedCurve == null) {
+            return;
+        }
+
+        focusedCurve.clear();
+        curves.remove(focusedCurve);
+        if (curves.isEmpty()) {
+            focusedCurve = null;
+            startedCurve = null;
+        } else {
+            focusedCurve = curves.get(0);
+            focusedCurve.highlight();
+            startedCurve = focusedCurve;
+        }
     }
 
     private Curve buildCurveFromDTO(CurveDTO curveDTO) {
-        Curve curve = new Curve(overlay, this, frame.getWidth(), frame.getHeight());
+        Curve curve = new Curve(overlay, this, frame.getWidth(), frame.getHeight(), curveDTO.getId());
         curve.fromCurveDTO(curveDTO);
         return curve;
     }
