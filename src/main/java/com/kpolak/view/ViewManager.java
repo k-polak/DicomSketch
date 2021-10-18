@@ -38,6 +38,7 @@ public class ViewManager {
     BorderPane borderPane;
     LeftSideThumbnailContainer leftSideThumbnailContainer;
     List<MainDisplay> mainDisplays;
+    PopupWindow popupWindow;
 
     public ViewManager(Stage stage) {
         this.stage = stage;
@@ -52,6 +53,7 @@ public class ViewManager {
         dicomReader = new DicomReader();
         borderPane = new BorderPane();
         scene = new Scene(borderPane, 1200, 1000);
+        popupWindow = new PopupWindow(scene);
         leftSideThumbnailContainer = new LeftSideThumbnailContainer(dicomReader, this);
         mainDisplays = new ArrayList<>();
 
