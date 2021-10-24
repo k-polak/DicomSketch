@@ -22,7 +22,6 @@ class PopupWindow {
 
     public PopupWindow(Scene scene) {
         this.scene = scene;
-
     }
 
     public void showPopup(String message) {

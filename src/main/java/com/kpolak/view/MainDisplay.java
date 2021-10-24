@@ -33,6 +33,7 @@ public class MainDisplay extends Pane {
     private ImageView imageView;
     private Pane imagePane;
     private Text textNumberLabel;
+    private PanAndZoomPane panAndZoomPane;
 
     public MainDisplay(Dicom dicom) {
         this.dicom = dicom;
@@ -45,15 +46,17 @@ public class MainDisplay extends Pane {
         setMaxSize(dicom.getWidth(), dicom.getHeight());
         setMinSize(dicom.getWidth(), dicom.getHeight());
         setBackground(Background.EMPTY);
+        setFocusTraversable(false);
 
         createImagePane();
-        PanAndZoomPane panAndZoomPane = createPaneAndZoomPane();
+        panAndZoomPane = createPaneAndZoomPane();
         panAndZoomPane.getChildren().add(imagePane);
         ScrollPane scrollPane = createScrollPane(panAndZoomPane);
 
         textNumberLabel = new Text();
         textNumberLabel.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
         VBox vbox = new VBox(scrollPane, textNumberLabel);
+        vbox.setFocusTraversable(false);
         vbox.setAlignment(Pos.CENTER);
         getChildren().add(vbox);
 
@@ -66,14 +69,20 @@ public class MainDisplay extends Pane {
         scrollPane.setPannable(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setFocusTraversable(false);
 
 //        scrollPane.addEventFilter( MouseEvent.MOUSE_CLICKED, sceneGestures.getOnMouseClickedEventHandler());
         scrollPane.addEventFilter(MouseEvent.MOUSE_PRESSED, sceneGestures.getOnMousePressedEventHandler());
         scrollPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, sceneGestures.getOnMouseDraggedEventHandler());
         scrollPane.addEventFilter(ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
         scrollPane.setContent(panAndZoomPane);
+        scrollPane.getStylesheets().add(getClass().getResource("/styles/scrollPaneFocus.css").toExternalForm());
         panAndZoomPane.toBack();
         return scrollPane;
+    }
+
+    public void fitWindow() {
+        panAndZoomPane.fitWidth();
     }
 
     private PanAndZoomPane createPaneAndZoomPane() {
@@ -82,6 +91,7 @@ public class MainDisplay extends Pane {
         DoubleProperty deltaY = new SimpleDoubleProperty(0.0d);
         zoomProperty.bind(panAndZoomPane.myScale);
         deltaY.bind(panAndZoomPane.deltaY);
+        panAndZoomPane.setFocusTraversable(false);
         return panAndZoomPane;
     }
 
@@ -90,6 +100,8 @@ public class MainDisplay extends Pane {
         imagePane.setMaxSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setMinSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setBackground(Background.EMPTY);
+        imagePane.setFocusTraversable(false);
+
         StackPane imageHolder = createImageHolder();
 
         imagePane.getChildren().add(imageHolder);

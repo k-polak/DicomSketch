@@ -16,6 +16,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -57,10 +58,11 @@ public class ViewManager {
         leftSideThumbnailContainer = new LeftSideThumbnailContainer(dicomReader, this);
         mainDisplays = new ArrayList<>();
 
-        borderPane.setBottom(getBottomButtons());
         borderPane.setLeft(leftSideThumbnailContainer);
         borderPane.setCenter(getEmptyMainWindow());
         borderPane.setTop(createMenu());
+        borderPane.setFocusTraversable(false);
+        borderPane.setStyle(StyleConstants.BACKGROUND_COLOR);
         registerKeyActions();
     }
 
@@ -72,12 +74,19 @@ public class ViewManager {
         if (event.getCode() == KeyCode.DELETE) {
             currentMainDisplay.handleDelete();
         }
+
+        if (event.getCode() == KeyCode.C) {
+            currentMainDisplay.fitWindow();
+        }
     }
 
     private HBox getBottomButtons() {
         HBox bottom = new HBox();
         bottom.setAlignment(Pos.CENTER);
         bottom.getChildren().addAll(getButtons());
+        bottom.setStyle(StyleConstants.BACKGROUND_COLOR);
+        bottom.setSpacing(10.0);
+        bottom.setPadding(new Insets(0,0,0, 135));
         return bottom;
     }
 
@@ -114,34 +123,38 @@ public class ViewManager {
     private void setCurrentMainDisplay(MainDisplay display) {
         currentMainDisplay = display;
         display.setBackground((new Background(
-                new BackgroundFill(Color.rgb(0, 0, 50), CornerRadii.EMPTY, Insets.EMPTY))));
+                new BackgroundFill(Color.rgb(0, 0, 0), CornerRadii.EMPTY, Insets.EMPTY))));
         StackPane stack = new StackPane(display);
-        stack.setBackground((new Background(
-                new BackgroundFill(Color.rgb(50, 0, 50), CornerRadii.EMPTY, Insets.EMPTY))));
+        stack.setFocusTraversable(false);
+        stack.setStyle(StyleConstants.MAIN_DISPLAY_CONTAINER_STYLE);
         borderPane.setCenter(stack);
         BorderPane.setAlignment(stack, Pos.CENTER);
     }
 
     private List<Button> getButtons() {
         Button nextFrameButton = new Button("Next");
-        nextFrameButton.setOnMouseClicked(e -> {
-            System.out.println("Next button clicked");
-            currentMainDisplay.nextFrame();
-        });
+        nextFrameButton.setFocusTraversable(false);
+        nextFrameButton.setOnMouseClicked(e -> currentMainDisplay.nextFrame());
 
         Button previousFrameButton = new Button("Previous");
-        previousFrameButton.setOnMouseClicked(e -> {
-            System.out.println("Previous button clicked");
-            currentMainDisplay.previousFrame();
-        });
+        previousFrameButton.setFocusTraversable(false);
+        previousFrameButton.setOnMouseClicked(e -> currentMainDisplay.previousFrame());
+
         Button exportCurvesButton = new Button("Export curves");
+        exportCurvesButton.setFocusTraversable(false);
         exportCurvesButton.setOnMouseClicked(e -> currentMainDisplay.exportCurves());
-        return Arrays.asList(previousFrameButton, nextFrameButton, exportCurvesButton);
+
+        List<Button> buttons = Arrays.asList(previousFrameButton, nextFrameButton, exportCurvesButton);
+        buttons.forEach(button -> button.setStyle(StyleConstants.BUTTON_STYLE));
+        return buttons;
     }
 
-    private VBox createMenu() {
+    private HBox createMenu() {
         MenuBar menuBar = new MenuBar();
-        VBox menuBarContainer = new VBox(menuBar);
+        HBox menuBarContainer = new HBox(menuBar);
+        HBox.setHgrow(menuBar, Priority.ALWAYS);
+
+        menuBar.setStyle(StyleConstants.MENU_BACKGROUND);
         Menu menu = new Menu("File");
 
         menu.getItems().add(getOpenDicomMenuItem());
@@ -177,9 +190,13 @@ public class ViewManager {
 
     private void handleSingleFileChosen(File dicomFile) {
         if (dicomFile != null) {
+            boolean isFirstLoad = dicomReader.getRootNode().flatTree().isEmpty();
             Dicom selectedDicom = dicomReader.readDicomFromFile(dicomFile.getAbsolutePath());
 //            TODO: Do not rebuild thumbnail container if it isn't necessary
             leftSideThumbnailContainer.buildThumbnailContainer();
+            if(isFirstLoad) {
+                borderPane.setBottom(getBottomButtons());
+            }
             MainDisplay mainDisplay = updateOrCreateMainDisplay(selectedDicom);
             setCurrentMainDisplay(mainDisplay);
         }
@@ -195,6 +212,7 @@ public class ViewManager {
             if (isFirstLoad) {
                 Optional<MainDisplay> mainDisplay = getMainDisplayByDicom(dicomReader.getRootNode().flatTree().get(0));
                 if (mainDisplay.isPresent()) {
+                    borderPane.setBottom(getBottomButtons());
                     setCurrentMainDisplay(mainDisplay.get());
                 } else {
                     throw new RuntimeException("Couldn't find main display after first load");

@@ -14,7 +14,6 @@ import javafx.scene.shape.StrokeLineCap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Curve {
@@ -90,7 +89,6 @@ public class Curve {
     QuadCurve createCurve(Anchor from, Anchor to) {
         double x1 = from.getCenterX(), y1 = from.getCenterY();
         double x2 = to.getCenterX(), y2 = to.getCenterY();
-        double distance = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
         QuadCurve curve = new QuadCurve();
         curve.setOnMouseClicked(event -> {
             System.out.println("Line clicked");
@@ -99,10 +97,10 @@ public class Curve {
         });
         curve.setStartX(x1);
         curve.setStartY(y1);
-        curve.setControlX(x1 + 20 * (x2 - x1) / distance);
-        curve.setControlY(y1 + 20 * (y2 - y1) / distance);
-//        curve.setControlX2(x2 - 20 * (x2 - x1) / distance);
-//        curve.setControlY2(y2 - 20 * (y2 - y1) / distance);
+
+        double[] controlPointXY = calculateControlXY(from, to);
+        curve.setControlX(controlPointXY[0]);
+        curve.setControlY(controlPointXY[1]);
         curve.setEndX(x2);
         curve.setEndY(y2);
         curve.setStroke(Color.BLUEVIOLET);
@@ -136,29 +134,6 @@ public class Curve {
         quadCurves.forEach(quadCurve -> group.getChildren().remove(quadCurve));
     }
 
-    private void createNewCurve(double fromX, double fromY, Optional<Double> controlX, Optional<Double> controlY, double toX, double toY) {
-        createInitialNewCurve();
-        createPoint(fromX, fromY);
-
-        addStartAnchorBinding(getLastPoint());
-    }
-
-    private void createInitialNewCurve() {
-        QuadCurve curve = new QuadCurve();
-        curve.setOnMouseClicked(event -> {
-            System.out.println("Line clicked");
-            lineClicked();
-//            event.consume();
-        });
-
-        curve.setStroke(Color.BLUEVIOLET);
-        curve.setStrokeWidth(4);
-        curve.setStrokeLineCap(StrokeLineCap.ROUND);
-        curve.setFill(Color.TRANSPARENT);
-        group.getChildren().add(curve);
-        quadCurves.add(curve);
-    }
-
     private QuadCurve createInitialNewCurve(double fromX, double fromY, double controlX, double controlY, double toX, double toY) {
         QuadCurve curve = new QuadCurve();
         curve.setOnMouseClicked(event -> {
@@ -181,44 +156,19 @@ public class Curve {
         return curve;
     }
 
-    private void createPoint(double x, double y) {
-        Anchor point = new Anchor(Color.TOMATO, x, y, 5, this, AnchorType.CURVE_POINT, maxWidth, maxHeight);
-        points.add(point);
-    }
-
-    private void createControlPoint() {
-        QuadCurve curve = getLastCurve();
-        Line controlLine1 = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.startXProperty(), curve.startYProperty(), this);
-        Line controlLine2 = new ControlLine(curve.controlXProperty(), curve.controlYProperty(), curve.endXProperty(), curve.endYProperty(), this);
-        Anchor control1 = new Anchor(Color.FORESTGREEN, curve.controlXProperty(), curve.controlYProperty(), 3, AnchorType.CONTROL_POINT, maxWidth, maxHeight);
-
-        controlPoints.add(control1);
-        controlLines.add(controlLine1);
-        controlLines.add(controlLine2);
-    }
-
-    private void addStartAnchorBinding(Anchor from) {
-        getLastCurve().startXProperty().bind(from.centerXProperty());
-        getLastCurve().startYProperty().bind(from.centerYProperty());
-    }
-
-    private void addEndAnchorBinding(Anchor end) {
-        getLastCurve().endXProperty().bind(end.centerXProperty());
-        getLastCurve().endYProperty().bind(end.centerYProperty());
-    }
-
-    private double calculateControlX(Anchor from, Anchor to) {
+    private double[] calculateControlXY(Anchor from, Anchor to) {
+        double distance = 20;
         double x1 = from.getCenterX(), y1 = from.getCenterY();
         double x2 = to.getCenterX(), y2 = to.getCenterY();
-        double distance = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-        return x1 + 20 * (x2 - x1) / distance;
-    }
+        double a = (y2 - y1) / (x2 - x1);
+        double cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
 
-    private double calculateControlY(Anchor from, Anchor to) {
-        double x1 = from.getCenterX(), y1 = from.getCenterY();
-        double x2 = to.getCenterX(), y2 = to.getCenterY();
-        double distance = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-        return y1 + 20 * (y2 - y1) / distance;
+
+        double outX = cx + Math.sqrt(distance * distance / (1 + 1 / (a * a)));
+
+        double delta = 4 * cy * cy - 4 * (cy * cy + (outX - cx) * (outX - cx) - (distance * distance));
+        double outY = (2 * cy - Math.sqrt(delta)) / 2;
+        return new double[]{outX, outY};
     }
 
     public void lineClicked() {
