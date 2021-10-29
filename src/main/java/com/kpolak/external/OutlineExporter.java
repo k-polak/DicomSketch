@@ -11,6 +11,7 @@ import com.kpolak.external.api.JsonFrameDTO;
 import com.kpolak.external.api.JsonPointDTO;
 import com.kpolak.model.Dicom;
 import com.kpolak.view.DisplayUnit;
+import com.kpolak.view.ExportException;
 import com.kpolak.view.FrameTraverser;
 import com.kpolak.view.line.Curve;
 
@@ -40,7 +41,7 @@ public class OutlineExporter {
             objectMapper.writeValue(new File(OutlinePathRetriever.retrieveJsonOutlinePath(dicom)), jsonDicomOutlineDTO);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new UncheckedIOException("Error while writing curves to json file.", e);
+            throw new ExportException("An error occurred during exporting curves");
         }
     }
 

@@ -34,11 +34,13 @@ public class MainDisplay extends Pane {
     private Pane imagePane;
     private Text textNumberLabel;
     private PanAndZoomPane panAndZoomPane;
+    private PopupWindow popupWindow;
 
-    public MainDisplay(Dicom dicom) {
+    public MainDisplay(Dicom dicom, PopupWindow popupWindow) {
         this.dicom = dicom;
         frameTraverser = new FrameTraverser(this, dicom);
         outlineExporter = new OutlineExporter(frameTraverser);
+        this.popupWindow = popupWindow;
         init();
     }
 
@@ -55,6 +57,7 @@ public class MainDisplay extends Pane {
 
         textNumberLabel = new Text();
         textNumberLabel.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        textNumberLabel.setFill(Color.WHITE);
         VBox vbox = new VBox(scrollPane, textNumberLabel);
         vbox.setFocusTraversable(false);
         vbox.setAlignment(Pos.CENTER);
@@ -174,7 +177,12 @@ public class MainDisplay extends Pane {
     }
 
     public void exportCurves() {
-        outlineExporter.exportOutline(dicom);
+        try {
+            outlineExporter.exportOutline(dicom);
+            popupWindow.showPopup("Export finished successfully");
+        } catch (ExportException e) {
+            popupWindow.showPopup(e.getMessage());
+        }
     }
 
     public void handleDelete() {

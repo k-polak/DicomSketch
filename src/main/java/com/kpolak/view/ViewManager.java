@@ -18,8 +18,10 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -97,7 +99,7 @@ public class ViewManager {
     }
 
     public MainDisplay createMainDisplay(Dicom newDicom) {
-        MainDisplay mainDisplay = new MainDisplay(newDicom);
+        MainDisplay mainDisplay = new MainDisplay(newDicom, popupWindow);
         mainDisplays.add(mainDisplay);
         return mainDisplay;
     }
@@ -230,6 +232,8 @@ public class ViewManager {
     private StackPane getEmptyMainWindow() {
         StackPane stackPane = new StackPane();
         Text text = new Text("Please select file to display");
+        text.setFont(Font.font("verdana", FontWeight.NORMAL, FontPosture.REGULAR, 20));
+        text.setFill(Color.WHITE);
         stackPane.getChildren().add(text);
         return stackPane;
     }

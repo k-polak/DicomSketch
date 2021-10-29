@@ -103,7 +103,7 @@ public class Curve {
         curve.setControlY(controlPointXY[1]);
         curve.setEndX(x2);
         curve.setEndY(y2);
-        curve.setStroke(Color.BLUEVIOLET);
+        curve.setStroke(Color.color(0.5411765f, 0.16862746f, 0.8862745f, 0.6f));
         curve.setStrokeWidth(4);
         curve.setStrokeLineCap(StrokeLineCap.ROUND);
         curve.setFill(Color.TRANSPARENT);
@@ -142,7 +142,7 @@ public class Curve {
 //            event.consume();
         });
 
-        curve.setStroke(Color.BLUEVIOLET);
+        curve.setStroke(Color.color(0.5411765f, 0.16862746f, 0.8862745f, 0.6f));
         curve.setStrokeWidth(4);
         curve.setStrokeLineCap(StrokeLineCap.ROUND);
         curve.setFill(Color.TRANSPARENT);

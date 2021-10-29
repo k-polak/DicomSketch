@@ -4,7 +4,7 @@ class StyleConstants {
     private StyleConstants() {
     }
 
-    static final String BACKGROUND_COLOR = "-fx-background-color: #3c3f41;";
+    static final String BACKGROUND_COLOR = "-fx-background-color: #77797d;";
     static final String MENU_BACKGROUND = "-fx-background-color: #ffffff;";
     static final String BORDER_COLOR = "-fx-background-color: #1e1e1f;";
     static final String BUTTON_STYLE = "-fx-background-color: " +
