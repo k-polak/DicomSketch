@@ -3,6 +3,7 @@ package com.kpolak.view;
 import com.kpolak.api.CurveDTO;
 import com.kpolak.view.line.Curve;
 import javafx.scene.Group;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
@@ -29,7 +30,8 @@ public class DisplayUnit {
     }
 
     private void createNewCurve(double x, double y, Group group) {
-        Curve newCurve = new Curve(group, this, frame.getWidth(), frame.getHeight(), Optional.empty());
+        Curve newCurve = new Curve(group, this, mainDisplay.getWidth(), mainDisplay.getHeight(),
+                Optional.empty(), mainDisplay.getXScale(), mainDisplay.getYScale(), false);
         newCurve.handleClick(x, y);
         focusedCurve = newCurve;
         startedCurve = newCurve;
@@ -74,7 +76,7 @@ public class DisplayUnit {
 
     public void withCurves(List<CurveDTO> curveDTOS, Optional<String> highlightedCurve) {
         curves = curveDTOS.stream()
-                .map(this::buildCurveFromDTO)
+                .map(dto -> buildCurveFromDTO(dto, true))
                 .collect(Collectors.toList());
         curves.forEach(Curve::removeHighlight);
         highlightedCurve.ifPresent(this::highlightCurveById);
@@ -82,7 +84,7 @@ public class DisplayUnit {
 
     public void withCurvesFromFile(List<CurveDTO> curveDTOS) {
         curves = curveDTOS.stream()
-                .map(this::buildCurveFromDTO)
+                .map(dto -> buildCurveFromDTO(dto, false))
                 .collect(Collectors.toList());
         curves.forEach(Curve::removeHighlight);
         curves.get(0).highlight();
@@ -118,8 +120,9 @@ public class DisplayUnit {
         }
     }
 
-    private Curve buildCurveFromDTO(CurveDTO curveDTO) {
-        Curve curve = new Curve(overlay, this, frame.getWidth(), frame.getHeight(), curveDTO.getId());
+    private Curve buildCurveFromDTO(CurveDTO curveDTO, boolean alreadyScaled) {
+        Curve curve = new Curve(overlay, this, MainDisplay.MAX_WIDTH, MainDisplay.MAX_HEIGHT,
+                curveDTO.getId(), mainDisplay.getXScale(), mainDisplay.getYScale(), alreadyScaled);
         curve.fromCurveDTO(curveDTO);
         return curve;
     }

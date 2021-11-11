@@ -28,8 +28,11 @@ public class Curve {
     DisplayUnit controller;
     double maxWidth;
     double maxHeight;
+    double xScale;
+    double yScale;
+    boolean alreadyScaled;
 
-    public Curve(Group group, DisplayUnit controller, double maxWidth, double maxHeight, Optional<String> id) {
+    public Curve(Group group, DisplayUnit controller, double maxWidth, double maxHeight, Optional<String> id, double xScale, double yScale, boolean alreadyScaled) {
         if (id.isPresent()) {
             this.id = id;
         } else {
@@ -45,6 +48,9 @@ public class Curve {
         this.group = group;
         this.maxWidth = maxWidth;
         this.maxHeight = maxHeight;
+        this.xScale = xScale;
+        this.yScale = yScale;
+        this.alreadyScaled = alreadyScaled;
     }
 
     public Optional<String> getId() {
@@ -266,7 +272,10 @@ public class Curve {
         PointDTO start = curveSectionDTO.getStart();
         PointDTO control = curveSectionDTO.getControl();
         PointDTO end = curveSectionDTO.getEnd();
-        return createInitialNewCurve(start.getX(), start.getY(), control.getX(), control.getY(), end.getX(), end.getY());
+        double xScale = alreadyScaled ? 1.0 : this.xScale;
+        double yScale = alreadyScaled ? 1.0 : this.yScale;
+        return createInitialNewCurve(start.getX() * xScale, start.getY() * yScale,
+                control.getX() * xScale, control.getY() * yScale, end.getX() * xScale, end.getY() * yScale);
     }
 
     private void initFirstQuadCurve() {

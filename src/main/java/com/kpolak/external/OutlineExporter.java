@@ -1,6 +1,7 @@
 package com.kpolak.external;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.kpolak.api.CurveDTO;
 import com.kpolak.api.CurveSectionDTO;
 import com.kpolak.api.PointDTO;
@@ -17,7 +18,6 @@ import com.kpolak.view.line.Curve;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,10 +25,15 @@ import java.util.stream.Collectors;
 public class OutlineExporter {
     private final FrameTraverser frameTraverser;
     private final ObjectMapper objectMapper;
+    private double xScale;
+    private double yScale;
 
-    public OutlineExporter(FrameTraverser frameTraverser) {
+    public OutlineExporter(double xScale, double yScale, FrameTraverser frameTraverser) {
         this.frameTraverser = frameTraverser;
+        this.xScale = xScale;
+        this.yScale = yScale;
         objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     public void exportOutline(Dicom dicom) {
@@ -72,6 +77,6 @@ public class OutlineExporter {
     }
 
     private JsonPointDTO mapPointToJsonPoint(PointDTO point) {
-        return new JsonPointDTO(point.getX(), point.getY());
+        return new JsonPointDTO(point.getX() / xScale, point.getY() / yScale);
     }
 }
