@@ -27,6 +27,8 @@ import javafx.scene.text.Text;
 import java.awt.image.BufferedImage;
 
 public class MainDisplay extends Pane {
+    public static final double MAX_WIDTH = 880;
+    public static final double MAX_HEIGHT = 880;
     private final FrameTraverser frameTraverser;
     private final OutlineExporter outlineExporter;
     private final Dicom dicom;
@@ -39,19 +41,33 @@ public class MainDisplay extends Pane {
     public MainDisplay(Dicom dicom, PopupWindow popupWindow) {
         this.dicom = dicom;
         frameTraverser = new FrameTraverser(this, dicom);
-        outlineExporter = new OutlineExporter(frameTraverser);
+        outlineExporter = new OutlineExporter(getXScale(), getYScale(), frameTraverser);
         this.popupWindow = popupWindow;
         init();
     }
 
+    public double getXScale() {
+        return MAX_WIDTH / dicom.getWidth();
+    }
+
+    public double getYScale() {
+        return MAX_HEIGHT / dicom.getHeight();
+    }
+
+
     private void init() {
-        setMaxSize(dicom.getWidth(), dicom.getHeight());
+        setMaxSize(MAX_WIDTH, MAX_HEIGHT);
         setMinSize(dicom.getWidth(), dicom.getHeight());
         setBackground(Background.EMPTY);
+//        setBackground((new Background(
+//                new BackgroundFill(Color.rgb(250, 250, 250), CornerRadii.EMPTY, Insets.EMPTY))));
         setFocusTraversable(false);
 
         createImagePane();
         panAndZoomPane = createPaneAndZoomPane();
+        panAndZoomPane.maxWidthProperty().bind(widthProperty());
+        panAndZoomPane.maxHeightProperty().bind(heightProperty());
+
         panAndZoomPane.getChildren().add(imagePane);
         ScrollPane scrollPane = createScrollPane(panAndZoomPane);
 
@@ -100,8 +116,8 @@ public class MainDisplay extends Pane {
 
     private Pane createImagePane() {
         imagePane = new Pane();
-        imagePane.setMaxSize(dicom.getWidth(), dicom.getHeight());
-        imagePane.setMinSize(dicom.getWidth(), dicom.getHeight());
+//        imagePane.setMaxSize(dicom.getWidth(), dicom.getHeight());
+//        imagePane.setMinSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setBackground(Background.EMPTY);
         imagePane.setFocusTraversable(false);
 
@@ -113,7 +129,6 @@ public class MainDisplay extends Pane {
         group1.setManaged(false);
 
         imagePane.getChildren().add(group1);
-        imagePane.setOnMouseClicked(this::getMouseEventHandlerForImagePane);
 
         return imagePane;
     }
@@ -124,12 +139,15 @@ public class MainDisplay extends Pane {
 
     private StackPane createImageHolder() {
         imageView = new ImageView();
+
+        imageView.fitWidthProperty().bind(widthProperty());
+        imageView.fitHeightProperty().bind(heightProperty());
+
+        imageView.setPreserveRatio(true);
+
+        imageView.setOnMouseClicked(this::getMouseEventHandlerForImagePane);
         StackPane imageHolder = new StackPane(imageView);
         imageHolder.setAlignment(Pos.CENTER);
-        imageHolder.setBackground((new Background(
-                new BackgroundFill(Color.rgb(50, 50, 50), CornerRadii.EMPTY, Insets.EMPTY))));
-        imageHolder.setMaxSize(dicom.getWidth(), dicom.getHeight());
-        imageHolder.setMinSize(dicom.getWidth(), dicom.getHeight());
         return imageHolder;
     }
 
