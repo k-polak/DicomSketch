@@ -1,6 +1,6 @@
 package com.kpolak.hierarchy;
 
-import com.kpolak.external.OutlineImporter;
+import com.kpolak.external.util.OutlineImporter;
 import com.kpolak.model.Dicom;
 import com.kpolak.model.Series;
 

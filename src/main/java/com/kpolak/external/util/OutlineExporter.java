@@ -1,4 +1,4 @@
-package com.kpolak.external;
+package com.kpolak.external.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
