@@ -1,9 +1,9 @@
 package com.kpolak.hierarchy;
 
-import com.kpolak.model.Dicom;
-import com.kpolak.model.Patient;
-import com.kpolak.model.Series;
-import com.kpolak.model.Study;
+import com.kpolak.model.dicom.Dicom;
+import com.kpolak.model.dicom.Patient;
+import com.kpolak.model.dicom.Series;
+import com.kpolak.model.dicom.Study;
 
 import java.util.ArrayList;
 import java.util.List;

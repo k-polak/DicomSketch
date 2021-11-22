@@ -2,14 +2,14 @@ package com.kpolak.view;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.kpolak.api.CurveDTO;
-import com.kpolak.api.CurveSectionDTO;
-import com.kpolak.api.PointDTO;
+import com.kpolak.model.curve.CurveDTO;
+import com.kpolak.model.curve.CurveSectionDTO;
+import com.kpolak.model.curve.PointDTO;
 import com.kpolak.external.api.JsonCurveDTO;
 import com.kpolak.external.api.JsonCurveSectionDTO;
 import com.kpolak.external.api.JsonDicomOutlineDTO;
 import com.kpolak.external.api.JsonPointDTO;
-import com.kpolak.model.Dicom;
+import com.kpolak.model.dicom.Dicom;
 import com.kpolak.view.line.Curve;
 
 import java.awt.image.BufferedImage;

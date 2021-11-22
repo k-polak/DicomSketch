@@ -1,4 +1,4 @@
-package com.kpolak.api;
+package com.kpolak.model.curve;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

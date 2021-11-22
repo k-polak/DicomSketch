@@ -1,4 +1,4 @@
-package com.kpolak.model;
+package com.kpolak.model.dicom;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

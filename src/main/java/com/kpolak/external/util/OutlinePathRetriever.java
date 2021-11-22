@@ -1,6 +1,6 @@
 package com.kpolak.external.util;
 
-import com.kpolak.model.Dicom;
+import com.kpolak.model.dicom.Dicom;
 
 import java.io.File;
 import java.nio.file.Paths;

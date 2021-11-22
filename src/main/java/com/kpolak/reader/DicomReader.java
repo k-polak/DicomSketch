@@ -1,10 +1,10 @@
 package com.kpolak.reader;
 
 import com.kpolak.hierarchy.RootNode;
-import com.kpolak.model.Dicom;
-import com.kpolak.model.Patient;
-import com.kpolak.model.Series;
-import com.kpolak.model.Study;
+import com.kpolak.model.dicom.Dicom;
+import com.kpolak.model.dicom.Patient;
+import com.kpolak.model.dicom.Series;
+import com.kpolak.model.dicom.Study;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.imageio.plugins.dcm.DicomImageReader;

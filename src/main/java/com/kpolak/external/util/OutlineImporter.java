@@ -2,7 +2,7 @@ package com.kpolak.external.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kpolak.external.api.JsonDicomOutlineDTO;
-import com.kpolak.model.Dicom;
+import com.kpolak.model.dicom.Dicom;
 
 import java.io.File;
 import java.io.IOException;

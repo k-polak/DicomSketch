@@ -1,7 +1,7 @@
 package com.kpolak.view;
 
 import com.kpolak.external.util.OutlineExporter;
-import com.kpolak.model.Dicom;
+import com.kpolak.model.dicom.Dicom;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.embed.swing.SwingFXUtils;

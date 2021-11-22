@@ -1,7 +1,7 @@
 package com.kpolak.hierarchy;
 
-import com.kpolak.model.Dicom;
-import com.kpolak.model.Patient;
+import com.kpolak.model.dicom.Dicom;
+import com.kpolak.model.dicom.Patient;
 
 import java.util.ArrayList;
 import java.util.List;

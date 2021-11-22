@@ -1,9 +1,8 @@
 package com.kpolak.view;
 
-import com.kpolak.api.CurveDTO;
+import com.kpolak.model.curve.CurveDTO;
 import com.kpolak.view.line.Curve;
 import javafx.scene.Group;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 

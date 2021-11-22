@@ -1,8 +1,8 @@
 package com.kpolak.view.line;
 
-import com.kpolak.api.CurveDTO;
-import com.kpolak.api.CurveSectionDTO;
-import com.kpolak.api.PointDTO;
+import com.kpolak.model.curve.CurveDTO;
+import com.kpolak.model.curve.CurveSectionDTO;
+import com.kpolak.model.curve.PointDTO;
 import com.kpolak.view.DisplayUnit;
 import com.kpolak.view.SimpleSequenceGenerator;
 import javafx.scene.Group;

@@ -1,6 +1,6 @@
 package com.kpolak.view;
 
-import com.kpolak.model.Dicom;
+import com.kpolak.model.dicom.Dicom;
 import com.kpolak.reader.DicomReader;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
