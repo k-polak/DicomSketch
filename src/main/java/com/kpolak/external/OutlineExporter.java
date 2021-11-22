@@ -52,6 +52,7 @@ public class OutlineExporter {
 
     private JsonFrameDTO mapDisplayUnitToJsonFrame(DisplayUnit displayUnit) {
         List<JsonCurveDTO> jsonCurves = displayUnit.getCurves().stream()
+                .filter(curve -> curve.isClosed)
                 .map(this::mapCurveToJsonCurve)
                 .collect(Collectors.toList());
         return new JsonFrameDTO(String.valueOf(displayUnit.getFrameId()), jsonCurves);
