@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class DicomReader {
+    private static final String DICOM_FILE_EXTENSION = ".dcm";
     private final ImageReader imageReader = new DicomImageReader(new DicomImageReaderSpi());
     private final RootNode rootNode;
 
@@ -36,12 +37,11 @@ public class DicomReader {
 
     public void readDicomFilesInDirectory(String path) {
         File dir = new File(path);
-        File[] files = dir.listFiles((dir1, name) -> name.endsWith(".dcm"));
+        File[] files = dir.listFiles((dir1, name) -> name.endsWith(DICOM_FILE_EXTENSION));
 
         for (File dicomFile : files) {
             readDicomFromFile(dicomFile.getPath());
         }
-        System.out.println("break");
     }
 
     public Dicom readDicomFromFile(String path) {
