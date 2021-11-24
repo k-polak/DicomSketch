@@ -21,9 +21,11 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 public class DicomReader {
     private static final String DICOM_FILE_EXTENSION = ".dcm";
+    private static final Logger logger = Logger.getLogger(DicomReader.class.getName());
     private final ImageReader imageReader = new DicomImageReader(new DicomImageReaderSpi());
     private final RootNode rootNode;
 
@@ -47,14 +49,11 @@ public class DicomReader {
     public Dicom readDicomFromFile(String path) {
         Attributes attributes;
         try (DicomInputStream dis = new DicomInputStream(new File(path))) {
-            dis.setIncludeBulkData(DicomInputStream.IncludeBulkData.NO);
             attributes = dis.readDataset();
-
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
-        printTags(attributes);
         Patient patient = readPatientData(attributes);
         Study study = readStudyData(attributes);
         Series series = readSeriesData(attributes);
@@ -63,6 +62,7 @@ public class DicomReader {
         int width = attributes.getInt(Tag.Rows, 0);
         int height = attributes.getInt(Tag.Columns, 0);
         int instanceNumber = attributes.getInt(Tag.InstanceNumber, -1);
+
         if (numberOfFrames == 1) {
             frames = readSingleFrameDicom(path, instanceNumber);
         } else {
@@ -81,7 +81,7 @@ public class DicomReader {
                 .build();
 
         if (dicom.getInstanceNumber() == -1) {
-            System.out.println("File without instanceNumber found. File is skipped");
+            logger.info("File without instanceNumber found. File is skipped");
         } else {
             rootNode.add(dicom);
         }
@@ -94,7 +94,6 @@ public class DicomReader {
         try (DicomInputStream dis = new DicomInputStream(new File(path))) {
             imageReader.setInput(dis);
             for (int i = 0; i < numberOfFrames; i++) {
-                System.out.println("parsing frame " + i);
                 frames.put(i + 1, imageReader.read(i, readParam()));
             }
         } catch (IOException e) {
@@ -113,7 +112,6 @@ public class DicomReader {
         }
         return frames;
     }
-
 
     private Patient readPatientData(Attributes attributes) {
         return Patient.builder()
