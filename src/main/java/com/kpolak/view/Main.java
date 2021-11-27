@@ -9,7 +9,7 @@ public class Main extends Application {
     public void start(Stage stage) {
         ViewManager viewManager = new ViewManager(stage);
 
-        stage.setTitle("Displaying Image");
+        stage.setTitle("DicomSketch");
         stage.setScene(viewManager.getScene());
         stage.show();
     }
