@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class ViewManager {
+    private static final int WIDTH = 1200;
+    private static final int HEIGHT = 1000;
     MainDisplay currentMainDisplay;
     Scene scene;
     Stage stage;
@@ -55,7 +57,7 @@ public class ViewManager {
     public void init() {
         dicomReader = new DicomReader();
         borderPane = new BorderPane();
-        scene = new Scene(borderPane, 1200, 1000);
+        scene = new Scene(borderPane, WIDTH, HEIGHT);
         popupWindow = new PopupWindow(scene);
         leftSideThumbnailContainer = new LeftSideThumbnailContainer(dicomReader, this);
         mainDisplays = new ArrayList<>();
