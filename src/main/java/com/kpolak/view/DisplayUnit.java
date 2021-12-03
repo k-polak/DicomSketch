@@ -54,6 +54,7 @@ public class DisplayUnit {
             focusedCurve.removeHighlight();
             curve.highlight();
             focusedCurve = curve;
+            startedCurve = curve;
         }
     }
 
