@@ -44,6 +44,8 @@ public class ViewManager {
     LeftSideThumbnailContainer leftSideThumbnailContainer;
     List<MainDisplay> mainDisplays;
     PopupWindow popupWindow;
+    Button nextFrameButton;
+    Button previousFrameButton;
 
     public ViewManager(Stage stage) {
         this.stage = stage;
@@ -122,6 +124,7 @@ public class ViewManager {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Couldn't find main window associated with clicked thumbnail"));
         setCurrentMainDisplay(mainDisplay);
+        updateButtonsVisibility();
     }
 
     private void setCurrentMainDisplay(MainDisplay display) {
@@ -136,13 +139,19 @@ public class ViewManager {
     }
 
     private List<Button> getButtons() {
-        Button nextFrameButton = new Button("Next");
+        nextFrameButton = new Button("Next");
         nextFrameButton.setFocusTraversable(false);
-        nextFrameButton.setOnMouseClicked(e -> currentMainDisplay.nextFrame());
+        nextFrameButton.setOnMouseClicked(e -> {
+            currentMainDisplay.nextFrame();
+            updateButtonsVisibility();
+        });
 
-        Button previousFrameButton = new Button("Previous");
+        previousFrameButton = new Button("Previous");
         previousFrameButton.setFocusTraversable(false);
-        previousFrameButton.setOnMouseClicked(e -> currentMainDisplay.previousFrame());
+        previousFrameButton.setOnMouseClicked(e -> {
+            currentMainDisplay.previousFrame();
+            updateButtonsVisibility();
+        });
 
         Button exportCurvesButton = new Button("Export curves");
         exportCurvesButton.setFocusTraversable(false);
@@ -151,6 +160,20 @@ public class ViewManager {
         List<Button> buttons = Arrays.asList(previousFrameButton, nextFrameButton, exportCurvesButton);
         buttons.forEach(button -> button.setStyle(StyleConstants.BUTTON_STYLE));
         return buttons;
+    }
+
+    private void updateButtonsVisibility() {
+        if (currentMainDisplay.getFrameTraverser().hasNext()) {
+           nextFrameButton.setVisible(true);
+        } else {
+            nextFrameButton.setVisible(false);
+        }
+
+        if (currentMainDisplay.getFrameTraverser().hasPrevious()) {
+            previousFrameButton.setVisible(true);
+        } else {
+            previousFrameButton.setVisible(false);
+        }
     }
 
     private HBox createMenu() {
@@ -203,6 +226,7 @@ public class ViewManager {
             }
             MainDisplay mainDisplay = updateOrCreateMainDisplay(selectedDicom);
             setCurrentMainDisplay(mainDisplay);
+            updateButtonsVisibility();
         }
     }
 
@@ -222,6 +246,7 @@ public class ViewManager {
                     throw new RuntimeException("Couldn't find main display after first load");
                 }
             }
+            updateButtonsVisibility();
         }
     }
 

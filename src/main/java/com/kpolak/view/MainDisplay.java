@@ -43,6 +43,10 @@ public class MainDisplay extends Pane {
         init();
     }
 
+    public FrameTraverser getFrameTraverser() {
+        return frameTraverser;
+    }
+
     public double getXScale() {
         return MAX_WIDTH / dicom.getWidth();
     }
@@ -56,8 +60,6 @@ public class MainDisplay extends Pane {
         setMaxSize(MAX_WIDTH, MAX_HEIGHT);
         setMinSize(dicom.getWidth(), dicom.getHeight());
         setBackground(Background.EMPTY);
-//        setBackground((new Background(
-//                new BackgroundFill(Color.rgb(250, 250, 250), CornerRadii.EMPTY, Insets.EMPTY))));
         setFocusTraversable(false);
 
         createImagePane();
@@ -87,7 +89,6 @@ public class MainDisplay extends Pane {
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setFocusTraversable(false);
 
-//        scrollPane.addEventFilter( MouseEvent.MOUSE_CLICKED, sceneGestures.getOnMouseClickedEventHandler());
         scrollPane.addEventFilter(MouseEvent.MOUSE_PRESSED, sceneGestures.getOnMousePressedEventHandler());
         scrollPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, sceneGestures.getOnMouseDraggedEventHandler());
         scrollPane.addEventFilter(ScrollEvent.ANY, sceneGestures.getOnScrollEventHandler());
@@ -113,8 +114,6 @@ public class MainDisplay extends Pane {
 
     private Pane createImagePane() {
         imagePane = new Pane();
-//        imagePane.setMaxSize(dicom.getWidth(), dicom.getHeight());
-//        imagePane.setMinSize(dicom.getWidth(), dicom.getHeight());
         imagePane.setBackground(Background.EMPTY);
         imagePane.setFocusTraversable(false);
 

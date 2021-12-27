@@ -74,6 +74,14 @@ public class FrameTraverser {
         return current();
     }
 
+    public boolean hasNext() {
+        return loadedFrames.higherKey(currentIndex) != null;
+    }
+
+    public boolean hasPrevious() {
+        return loadedFrames.lowerKey(currentIndex) != null;
+    }
+
     public Collection<DisplayUnit> getAllDisplayUnits() {
         return loadedFrames.values();
     }
